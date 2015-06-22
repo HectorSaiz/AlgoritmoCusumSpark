@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Alberto on 6/22/15.
+ * Created by root on 6/22/15.
  */
 public class Deteccion {
     // Carga los datos
@@ -12,7 +12,7 @@ public class Deteccion {
     */
 
     // Factorial
-    static int Factorial(int n) {
+    static double Factorial(double n) {
         if (n == 0)
             return 1;
         else
@@ -20,7 +20,7 @@ public class Deteccion {
     }
 
     // f(x) de Poisson ( dpois(data,lambda) en R )
-    static double poissonFunction(int x, double lambda){
+    static double poissonFunction(double x, double lambda){
         return Math.pow(lambda, x) / Factorial(x) * Math.pow(Math.E,-lambda);
     }
 
@@ -67,7 +67,7 @@ public class Deteccion {
     }
 
     // DETECTAMOS DONDE SE PRODUCE EL CAMBIO
-    static double myPos(int data, double l1, double l2){
+    static double myPos(double data, double l1, double l2){
         if ( l1 == 0 && l2 == 0 )
             return (0);
         if ( l1 == 0 || l2 == 0 ) {
@@ -80,21 +80,85 @@ public class Deteccion {
     // init: indice del primer dato
     // vEnd: indice del ultimo dato usado para estimar velocidad inicial
     // end: indice del ultimo dato para observar el cambio
-    /*static List<Double> detectaCambio (int init, int lon, int vLon, int[] data) {
-        int vEnd = init + vLon -1;
+    static List<Object> detectaCambio (int init, int lon, int vLon, double[] data) {
+        double[] data2 = new double[vLon];
+        double[] x = new double[vLon];
+        for (int i=0; i<vLon; i++){
+            data2[i] = data[i+init];
+            x[i] = i+1;
+        }
 
-        return;
+        List<Double> regresion = regLineal(data2, x);
+        double l0 = regresion.get(0);
+        double b0 = regresion.get(1);
+        int threshold = 10;
 
-    }*/
+        for (int i = 0; i<lon; i++){
+            data2 = wc.getArrival(i+init); //Pendiente de ver que será wc
+        }
+
+        double[] pb = new double[lon];
+        double[] gb = new double[lon];
+        double[] pa = new double[lon];
+        double[] ga = new double[lon];
+
+        pb[0] = 0;
+        gb[0] = 0;
+        //   alarmab <- FALSE # alarma before
+        //   ialarmb <- -1 # Índice de la alarma para la ventana por delante
+        //   ialarma <- -1 # Índice de la alarma para la ventana por detrás
+        //   alarmaa <- F # alarma after
+        double ialarm = -1;
+        for(int i=1; i<lon; i++) {
+            double lbefore = l0 + i*b0; //Lambda si no hay cambio
+            if(lbefore < 0)
+                lbefore = 0;
+            double la = lbefore + 0.2; //Un poco despues de lbefore. Lo que suma debe ser constante
+            double s = myPos(data2[i], lbefore, la);
+            pa[i] = pa[i-1] + s;
+            if((ga[i-1] + s) < 0)
+                ga[i] = 0;
+            else
+                ga[i] = ga[i-1] + s;
+            if(ga[i] > threshold) {
+                //     if(ga[i] > threshold & !alarmaa) {
+                //       ialarma <- i
+                //       alarmaa <- TRUE
+                ialarm = i;
+                break;
+            }
+
+            double lb = lbefore - 0.2; // Un poco antes de lbefore.
+            if(lb < 0)
+                lb = 0;
+            s = myPos(data[i], lbefore, lb);
+            pb[i] = pb[i-1] + s;
+            if((gb[i-1] + s) < 0)
+                gb[i] = 0;
+            else
+                gb[i] = gb[i-1] + s;
+            if(gb[i] > threshold) {
+                //     if(gb[i] > threshold & !alarmab) {
+                //       ialarmb <- i
+                //       alarmab <- TRUE
+                ialarm = i;
+                break;
+            }
+        }
+        List<Object> result = new ArrayList<>(); // Habrá que mejorar esto... tal vez crear un objeto java para devolver el resultado bien estructurado
+        result.add(l0);
+        result.add(b0);
+        result.add(init+ialarm-1);// -1 tal vez haya que quitarlo (tema diferencia de indices java y R)
+        result.add(pa);
+        result.add(pb);
+        result.add(ga);
+        result.add(gb);
+        return result;
+    }
 
     //Main (pruebas de los métodos)
     public static void main(String args[]){
-        double[] x = new double[4];
-        x[0] = 1; x[1] = 4; x[2] = -2; x[3] = 3;
-        double[] y = new double[4];
-        y[0] = -3; y[1] = 6; y[2] = 5; y[3] = -1;
-        List<Double> reg = regLineal(y,x);
-        System.out.println(reg.get(0)+ " " + reg.get(1));
+
     }
 
 
