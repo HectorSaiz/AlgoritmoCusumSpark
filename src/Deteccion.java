@@ -156,138 +156,89 @@ public class Deteccion {
         return result;
     }
 
+    // CALCULA LA VELOCIDAD PARA UN INTERVALO DE DATOS
+    // init: indice del primer dato
+    // lon: longitud de los datos
+    // nven: numero de ventanas
+    static List<Double> calculaVelocidad(int init, int lon, int nven, double[] data){
+        // Calculo una velocidad aproximada a partir de los datos
+        double[] data2 = new double[lon];
+        double[] aux = new double[lon];
+        for (int i=0; i<lon; i++){
+            data2[i] = data[i+init];
+            aux[i] = i+1;
+        }
+        List<Double> regresion = regLineal(data2, aux);
+        double lv = regresion.get(0);
+        double lfin = lv + regresion.get(1)*lon;
+        double[][] mp = new double[nven][lon];
+        for(int k = 0; k<nven; k++) {
+            double lk = lv + (lfin-lv)/nven;
+            mp[k][0] = myPos(data[0], lv, lk);
+        }
+        for(int i=1; i<lon; i++) {
+            for(int k=0; k<nven; k++) {
+                double lk = lv + (k+1) * (lfin-lv)/nven;
+                double lk0 = lv + k * (lfin-lv)/nven;
+                mp[k][i] = mp[k][i-1] + myPos(data[i], lk0, lk);
+            }
+        }
+
+        //Regresion de los datos
+        double[] d = new double[nven];
+        double[] x = new double[nven];
+        for (int i = 0; i<nven;i++){
+            x[i] = i+1;
+            double auxmin = Double.POSITIVE_INFINITY;
+            double minindex = 0;
+            for (int j = 0; j<lon; j++){
+                if ( auxmin > mp[i][j] ){
+                    auxmin = mp[i][j];
+                    minindex = j;
+                }
+            }
+            d[i] = minindex;
+        }
+        List<Double> regresionVelocidad = regLineal(d, x);
+        // Fin de la regresion
+        double velocidad = (lfin-lv)/(nven*regresionVelocidad.get(1)); //Tamanyo una ventana / y de la regresion
+
+        List<Double> result = new ArrayList<>();
+        result.add(velocidad);
+        result.add(lv);
+        return(result);
+    }
+
+    // PARA CALCULAR EL PUNTO DE CAMBIO
+    static double calculaPuntoCambio(int init, int lon, double l0, double b0, double velocidad, double[] data){
+        int last = lon;
+        double[] S = new double[lon];
+        for (int i = 1; i<last-1; i++){
+            int i1 = i+1;
+            S[i-init] = 0;
+            for (int k = i1; k<last; k++){
+                double lfirst = l0 +b0*(k+1);
+                if (velocidad<0){
+                    System.out.println("fallo");
+                }
+                double lsecond = l0 +b0*i + velocidad*(k-i);
+                double s = myPos(data[k], lfirst, lsecond);
+                S[i-init] = S[i-init] + s;
+            }
+        }
+        double auxmax = 0;
+        int maxindex = 0;
+        for (int i=0; i<S.length; i++){
+            if ( auxmax < S[i]){
+                auxmax = S[i];
+                maxindex = i;
+            }
+        }
+        return (maxindex+init);
+    }
+
     //Main (pruebas de los métodos)
     public static void main(String args[]){
 
     }
-
-
-
-    // DETECCIÓN DEL CAMBIO
-    // TODO: Traducir a java
-    /*
-    # init: índice del primer dato
-    # vEnd: índice del último dato usado para estimar velocidad inicial
-    # end: índice del último dato para observar el cambio
-    detectaCambio <- function(init=1, lon=2000, vLon=600, data) {
-        vEnd <- init + vLon -1
-        data <- data[init:vEnd]
-
-        regresion <- lm(data ~ seq(1, vLon))
-
-        l0 <- regresion$coefficients[1]
-        b0 <- regresion$coefficients[2]
-        threshold <- 10
-
-        end <- init + lon - 1
-        data <- wc$arrivals[init:end]
-        pb <- vector(length=lon) # p before
-        gb <- vector(length=lon) # g before
-        pa <- vector(length=lon) # p after
-        ga <- vector(length=lon) # g after
-
-        pb[1] <- 0
-        gb[1] <- 0
-        #   alarmab <- FALSE # alarma before
-        #   ialarmb <- -1 # Índice de la alarma para la ventana por delante
-        #   ialarma <- -1 # Índice de la alarma para la ventana por detrás
-        #   alarmaa <- F # alarma after
-        ialarm <- -1
-        for(i in 2:lon) {
-            lbefore <- l0 + i*b0 #Lambda si no hay cambio
-            if(lbefore < 0) lbefore <- 0
-            la <- lbefore + 0.2 #Un poco despues de lbefore. Lo que suma debe ser constante
-            s <- mypos(data[i], lbefore, la)
-            pa[i] <- pa[i-1] + s
-            if((ga[i-1] + s) < 0) ga[i] <- 0
-            else ga[i] <- ga[i-1] + s
-            if(ga[i] > threshold) {
-                #     if(ga[i] > threshold & !alarmaa) {
-                    #       ialarma <- i
-                    #       alarmaa <- TRUE
-                    ialarm <- i
-                    break
-                }
-
-                lb <- lbefore - 0.2 # Un poco antes de lbefore.
-                if(lb < 0) lb <- 0
-                s <- mypos(data[i], lbefore, lb)
-                pb[i] <- pb[i-1] + s
-                if((gb[i-1] + s) < 0) gb[i] <- 0
-                else gb[i] <- gb[i-1] + s
-                if(gb[i] > threshold) {
-                    #     if(gb[i] > threshold & !alarmab) {
-                        #       ialarmb <- i
-                        #       alarmab <- TRUE
-                        ialarm <- i
-                        break
-                    }
-                }
-                result <- list(l0=l0, b0=b0, ialarm=init+ialarm-1, pa=pa, pb=pb,
-                        ga=ga, gb=gb)
-                return(result)
-            }
-            */
-
-
-
-
-    // CALCULA LA VELOCIDAD PARA UN INTERVALO DE DATOS
-    // TODO: Traducir a java
-            /*
-            # ini: índice del primer dato
-            # lon: longitud de los datos
-            # nven: número de ventanas
-            calculaVelocidad <- function(init=1, lon=1200, nven=15, data) {
-                # Calculo una velocidad aproximada a partir de los datos
-                data <- data[init:(init+lon-1)]
-                regresion.datos <- lm(data ~ seq(1:lon))
-                lv <- regresion.datos$coefficients[1]
-                lfin <- lv + regresion.datos$coefficients[2]*lon
-                mp <- matrix(nrow=nven, ncol=lon)
-                for(k in 1:nven) {
-                    lk <- lv + (lfin-lv)/nven
-                    mp[k,1] <- mypos(data[1], lv, lk)
-                }
-                for(i in 2:lon) {
-                    for(k in 1:nven) {
-                        lk <- lv + k * (lfin-lv)/nven
-                        lk0 <- lv + (k-1) * (lfin-lv)/nven
-                        mp[k,i] <- mp[k,i-1] + mypos(data[i], lk0, lk)
-                    }
-                }
-
-                #Regresion de los datos
-                d <- vector(length=nven)
-                x <- seq(from=1, to=nven)
-                for(i in 1:nven) {
-                    d[i] <- which.min(mp[i,])
-                }
-                regresion.velocidad <- lm(d ~ x)
-                #Fin de la regresion
-                velocidad <- (lfin-lv)/(nven*regresion.velocidad$coefficients[2]) #Tamanyo una ventana / y de la regresion
-
-                result <- list(velocidad=velocidad, l0=lv)
-                return(result)
-            }*/
-
-    // PARA CALCULAR EL PUNTO DE CAMBIO
-    // TODO: Traducir a java
-            /*
-            calculaPuntoCambio <- function(init=1, lon, l0, b0, velocidad, data) {
-                last <- lon
-                S <- vector(length=lon)
-                for(i in 2+init:last-1) {
-                    i1 <- i+1
-                    S[i-init] <- 0
-                    for(k in i1:last) {
-                        lfirst <- l0 + b0*k
-                        if(velocidad<0) print("fallo")
-                        lsecond <- l0 + b0*i + velocidad*(k-i)
-                        s <- mypos(data[k], lfirst, lsecond)
-                        S[i-init] <- S[i-init] + s
-                    }
-                }
-                return (which.max(S) + init)
-            }*/
 }
