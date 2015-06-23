@@ -80,12 +80,17 @@ public class Deteccion {
     // init: indice del primer dato
     // vEnd: indice del ultimo dato usado para estimar velocidad inicial
     // end: indice del ultimo dato para observar el cambio
-    static List<Object> detectaCambio (int init, int lon, int vLon, double[] data) {
+    static List<Object> detectaCambio (int init, int lon, int vLon, int[] data) {
         double[] data2 = new double[vLon];
+        double[] data3 = new double[lon];
         double[] x = new double[vLon];
         for (int i=0; i<vLon; i++){
             data2[i] = data[i+init];
             x[i] = i+1;
+        }
+
+        for (int i=0; i<lon; i++){
+            data3[i] = data[i+init];
         }
 
         List<Double> regresion = regLineal(data2, x);
@@ -93,9 +98,9 @@ public class Deteccion {
         double b0 = regresion.get(1);
         int threshold = 10;
 
-        for (int i = 0; i<lon; i++){
-            data2 = wc.getArrival(i+init); //Pendiente de ver que será wc
-        }
+//        for (int i = 0; i<lon; i++){
+//            data2 = wc.getArrival(i+init); //Pendiente de ver que será wc
+//        }
 
         double[] pb = new double[lon];
         double[] gb = new double[lon];
@@ -114,13 +119,14 @@ public class Deteccion {
             if(lbefore < 0)
                 lbefore = 0;
             double la = lbefore + 0.2; //Un poco despues de lbefore. Lo que suma debe ser constante
-            double s = myPos(data2[i], lbefore, la);
+            double s = myPos(data3[i], lbefore, la);
             pa[i] = pa[i-1] + s;
             if((ga[i-1] + s) < 0)
                 ga[i] = 0;
             else
                 ga[i] = ga[i-1] + s;
             if(ga[i] > threshold) {
+                System.out.println("ga[i]" + i + " > threshold   " + ga[i]);
                 //     if(ga[i] > threshold & !alarmaa) {
                 //       ialarma <- i
                 //       alarmaa <- TRUE
@@ -138,6 +144,7 @@ public class Deteccion {
             else
                 gb[i] = gb[i-1] + s;
             if(gb[i] > threshold) {
+                System.out.println("gb[i]" + i + " > threshold   " + gb[i]);
                 //     if(gb[i] > threshold & !alarmab) {
                 //       ialarmb <- i
                 //       alarmab <- TRUE
@@ -237,8 +244,31 @@ public class Deteccion {
         return (maxindex+init);
     }
 
-    //Main (pruebas de los métodos)
+    //Main (Poisson de los métodos)
     public static void main(String args[]){
+        Poisson p = new Poisson();
+
+        int[] lista = new int[2001];
+        int i = 0;
+        double incremento = 0.1;
+        while ( i < 1000 ){
+            lista[i] =  p.nextPoisson( ((double) i) * incremento);
+            System.out.println(lista[i]);
+//            System.out.println("Iteración " + i +": " + p.nextPoisson(((double) i) * incremento));
+            i++;
+        }
+        incremento = 0.25;
+
+
+        for (int j = i; j < 2001; j++) {
+            lista[j] =  p.nextPoisson( ((double) j) * incremento);
+            System.out.println(lista[j]);
+//            System.out.println("Iteración " + j +": " + p.nextPoisson(((double) j) * incremento));
+        }
+
+
+        detectaCambio(1, 2000, 600, lista);
+
 
     }
 }
