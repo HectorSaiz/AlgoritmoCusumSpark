@@ -167,7 +167,7 @@ public class Deteccion {
     // init: indice del primer dato
     // lon: longitud de los datos
     // nven: numero de ventanas
-    static List<Double> calculaVelocidad(int init, int lon, int nven, double[] data){
+    static List<Double> calculaVelocidad(int init, int lon, int nven, int[] data){
         // Calculo una velocidad aproximada a partir de los datos
         double[] data2 = new double[lon];
         double[] aux = new double[lon];
@@ -217,7 +217,7 @@ public class Deteccion {
     }
 
     // PARA CALCULAR EL PUNTO DE CAMBIO
-    static double calculaPuntoCambio(int init, int lon, double l0, double b0, double velocidad, double[] data){
+    static int calculaPuntoCambio(int init, int lon, double l0, double b0, double velocidad, int[] data){
         int last = lon;
         double[] S = new double[lon];
         for (int i = 1; i<last-1; i++){
@@ -267,8 +267,13 @@ public class Deteccion {
         }
 
 
-        detectaCambio(1, 2000, 600, lista);
+        List<Object> resultDetectaCambio = detectaCambio(1, 2000, 600, lista);
 
+        List<Double> resultCalculaVelocidad = calculaVelocidad(1, 1200, 15, lista);
+
+        int puntoCambio = calculaPuntoCambio(1, 2000, ((double) resultDetectaCambio.get(0)), ((double) resultDetectaCambio.get(1)), resultCalculaVelocidad.get(0), lista );
+
+        System.out.println(puntoCambio);
 
     }
 }
