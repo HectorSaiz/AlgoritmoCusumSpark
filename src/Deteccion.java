@@ -96,7 +96,7 @@ public class Deteccion {
         List<Double> regresion = regLineal(data2, x);
         double l0 = regresion.get(0);
         double b0 = regresion.get(1);
-        int threshold = 10;
+        double threshold = 10;
 
 //        for (int i = 0; i<lon; i++){
 //            data2 = wc.getArrival(i+init); //Pendiente de ver que será wc
@@ -266,7 +266,7 @@ public class Deteccion {
 
 
         List<Object> resultDetectaCambio = detectaCambio(1, 2000, 600, lista);
-        List<Double> resultCalculaVelocidad = calculaVelocidad(1, 1200, 15, lista);
+        List<Double> resultCalculaVelocidad = calculaVelocidad(1, 1200, 80, lista);
         int puntoCambio = calculaPuntoCambio(1, 2000, ((double) resultDetectaCambio.get(0)), ((double) resultDetectaCambio.get(1)), resultCalculaVelocidad.get(0), lista );
 
         System.out.println(puntoCambio);
