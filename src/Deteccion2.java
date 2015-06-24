@@ -228,6 +228,10 @@ public class Deteccion2 {
         int errorArl = 0;
 
         double threshold, l0, b0, b1;
+        List e, arl, data, velocidades, velocidades2, time, time2, timeTeorica, timeDatos;
+        double[][] mp;
+        int j;
+
 //         for (int i = 0; i < 3; i++) {
         for (int n = 0; n < arrayLambda.length; n++) {
 //            n = 3;
@@ -241,41 +245,34 @@ public class Deteccion2 {
                 b1 = arrayVel[mm];
 //                for (double b1 : arrayVel) {
 
+                e = new ArrayList<Double>(exp);
+                arl = new ArrayList<Double>(exp);
 
+                data = new ArrayList<Double>(lon+lon2);
 
+                mp = new double [nven][lon2];
+                velocidades = new ArrayList<Double>(exp);
+                velocidades2 = new ArrayList<Double>(exp);
+
+                time = new ArrayList<Double>(exp);
+                time2 = new ArrayList<Double>(exp);
+                timeTeorica = new ArrayList<Double>(exp);
+                timeDatos = new ArrayList<Double>(exp);
+
+//                for(j in 1:exp) {
+
+                j = 0;
+                while (j <= exp){
+                    System.out.println("Experimento: " + j);
+//
                 }
-            }
 
+            }
         }
 
+    }
+
 /*
-# for(n in seq(1:3)) {
-for(n in 1:length(arrayLambda)) {
-  #   n <- 3
-  threshold = arrayThreshold[n]
-  l0 <- arrayLambda[n] #Lambda inicial
-
-  #   for(threshold in arrayThreshold) {
-  #for(m in 1:(length(arrayVel)-1)) {
-    b0 <- 0;
-    for(mm in 1:length(arrayVel)) {
-      b1 <- arrayVel[mm]
-      #   for(b1 in arrayVel) {
-
-      e <- vector(length=exp)
-      arl <- vector(length=exp) # Guardo Averange Run Length: el instante donde salta la alarma.
-
-      data <- vector(length=(lon+lon2))
-
-      mp <- matrix(nrow=nven, ncol=lon2)
-      velocidades <- vector(length=exp)
-      velocidades2 <- vector(length=exp)
-
-      time <- vector(length=exp)
-      time2 <- vector(length=exp)
-      timeTeorica <- vector(length=exp)
-      timeDatos <- vector(length=exp)
-
       #     for(j in 1:exp) {
       j <- 1
       while(j <= exp) {
