@@ -76,7 +76,7 @@ public class Deteccion {
             return (l1 - l2 + Math.log(l2 / l1)*data);
     }
 
-    //DETECCIÓN DEL CAMBIO (Habŕa que sobrecargar si queremos que tenga valores por defecto)
+    //DETECCIÓN DEL CAMBIO (Habrá que sobrecargar si queremos que tenga valores por defecto)
     // init: indice del primer dato
     // vEnd: indice del ultimo dato usado para estimar velocidad inicial
     // end: indice del ultimo dato para observar el cambio

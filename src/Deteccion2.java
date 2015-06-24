@@ -5,6 +5,7 @@ import java.util.List;
  * Created by root on 6/24/15.
  */
 public class Deteccion2 {
+
     // Factorial
     static double Factorial(double n) {
         if (n == 0)
@@ -67,14 +68,19 @@ public class Deteccion2 {
         //if ( l1 == 0 || l2 == 0 ) {
         //    return (Math.log(poissonFunction(data, l2) / poissonFunction(data, l1)));
         //} else
-            return (l1 - l2 + Math.log(l2 / l1)*data);
+        return (l1 - l2 + Math.log(l2 / l1)*data);
     }
 
     static double velocidad(int[] data){
+<<<<<<< Updated upstream
         int tam = data.length -1;
         double[] resta = new double[tam];
         for (int i=0; i<tam; i++)
             resta[i] = data[i+1] - data[i];
+=======
+        double[] resta = new double[];vector(length=tam);
+        for(i in 1:tam) resta[i] <- data[i+1] - data[i];
+>>>>>>> Stashed changes
         return (mean(resta));
     }
 
@@ -209,22 +215,47 @@ public class Deteccion2 {
     }
     /*
 
-# arrayVel = c(0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1, 1.5, 2, 2.5, 3)
-# arrayVel = c(0.00, 0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1, 1.5, 2, 2.5, 3)
-arrayVel = c(0.05)
-# arrayVel = c(0.0, 0.25)
-# arrayThreshold = c(7, 9.8, 14.4)
-# arrayLambda = c(5, 10, 20)
-arrayThreshold = c(7)#, 9.8, 14.4)
-arrayLambda = c(5)#, 10, 20)
+*/
 
-lon <- 100 #Numero de datos antes del cambio
-lon2 <- 50 #Numero de datos despues del cambio
-exp <-
-nven <- 15 #Numero de ventanas
-errorVelocidad <- 0
-errorArl <- 0
 
+    static void detectaCambio() {
+        // Atributos
+
+        double[] arrayVel = new double[] {0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1, 1.5, 2, 2.5, 3};   // Array de velocidades de las rectas, es decir de las inclinaciones
+        double[] arrayThreshold = new double[] {7, 9.8, 14.4};  // Array con los posibles valores umbral para los experimentos
+        int[] arrayLambda = new int[] {5, 10, 20};  // Array con las posibles lambdas a tomar en los experimentos
+
+        int lon = 100;  // Cantidad de números antes de introducir en cambio
+        int lon2 = 50;  // Cantidad de números después de introducir el cambio
+        int exp = 100;  // Cantidad de experimentos a realizar TODO incremenar hasta los 10000
+        int nven = 15;  // Cantidad de ventanas a utilizar
+        int errorVelocidad = 0;
+        int errorArl = 0;
+
+        double threshold, l0, b0, b1;
+//         for (int i = 0; i < 3; i++) {
+        for (int n = 0; n < arrayLambda.length; n++) {
+//            n = 3;
+            threshold = arrayThreshold[n];
+            l0 = arrayLambda[n]; // Lambda inicial
+
+//            for (int threshold : arrayThreshold)
+//            for(m in 1:(length(arrayVel)-1)) {
+            b0 = 0;
+            for (int mm = 0; mm < arrayVel.length; mm++) {
+                b1 = arrayVel[mm];
+//                for (double b1 : arrayVel) {
+
+
+
+
+                }
+            }
+
+        }
+    }
+
+/*
 # for(n in seq(1:3)) {
 for(n in 1:length(arrayLambda)) {
   #   n <- 3
