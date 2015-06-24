@@ -249,34 +249,24 @@ public class Deteccion {
         Poisson p = new Poisson();
 
         int[] lista = new int[2001];
-        int i = 0;
         double incremento = 0.1;
-        
+
         for (int i = 0; i < 1000; i++ ){
             lista[i] =  p.nextPoisson( ((double) i) * incremento);
             System.out.println(lista[i]);
         }
-        
-        /**while ( i < 1000 ){
-            lista[i] =  p.nextPoisson( ((double) i) * incremento);
-            System.out.println(lista[i]);
-//            System.out.println("Iteración " + i +": " + p.nextPoisson(((double) i) * incremento));
-            i++;
-        } **/
+
         incremento = 0.25;
 
 
-        for (int j = 10001; j < 2001; j++) {
+        for (int j = 1001; j < 2001; j++) {
             lista[j] =  p.nextPoisson( ((double) j) * incremento);
             System.out.println(lista[j]);
-//            System.out.println("Iteración " + j +": " + p.nextPoisson(((double) j) * incremento));
         }
 
 
         List<Object> resultDetectaCambio = detectaCambio(1, 2000, 600, lista);
-
         List<Double> resultCalculaVelocidad = calculaVelocidad(1, 1200, 15, lista);
-
         int puntoCambio = calculaPuntoCambio(1, 2000, ((double) resultDetectaCambio.get(0)), ((double) resultDetectaCambio.get(1)), resultCalculaVelocidad.get(0), lista );
 
         System.out.println(puntoCambio);
