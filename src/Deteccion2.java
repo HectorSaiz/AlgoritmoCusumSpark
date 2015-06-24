@@ -72,15 +72,10 @@ public class Deteccion2 {
     }
 
     static double velocidad(int[] data){
-<<<<<<< Updated upstream
         int tam = data.length -1;
         double[] resta = new double[tam];
         for (int i=0; i<tam; i++)
             resta[i] = data[i+1] - data[i];
-=======
-        double[] resta = new double[];vector(length=tam);
-        for(i in 1:tam) resta[i] <- data[i+1] - data[i];
->>>>>>> Stashed changes
         return (mean(resta));
     }
 
@@ -248,12 +243,10 @@ public class Deteccion2 {
 
 
 
-
                 }
             }
 
         }
-    }
 
 /*
 # for(n in seq(1:3)) {
