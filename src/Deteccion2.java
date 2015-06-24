@@ -71,10 +71,60 @@ public class Deteccion2 {
     }
 
     static double velocidad(int[] data){
-        double[] resta = new double[];vector(length=tam)
-        for(i in 1:tam) resta[i] <- data[i+1] - data[i]
-        return (mean(resta))
+        int tam = data.length -1;
+        double[] resta = new double[tam];
+        for (int i=0; i<tam; i++)
+            resta[i] = data[i+1] - data[i];
+        return (mean(resta));
     }
+
+    static double v2(int[] data){
+        double sum = 0;
+        for (int i = 0; i < data.length; i++){
+            sum += data[i];
+        }
+        return (sum/data.length);
+    }
+
+    static double v3(double[] data){
+        double[] x = new double[data.length];
+        for (int i=0; i<data.length; i++){
+            x[i] = i+1;
+        }
+        List<Double> regresion = regLineal(data, x);
+        return (regresion.get(1)*data.length);
+    }
+
+    static double vv3(double[] data){
+        double[] x = new double[data.length];
+        for (int i=0; i<data.length; i++){
+            x[i] = i+1;
+        }
+        List<Double> regresion = regLineal(data, x);
+        return regresion.get(1);
+    }
+
+    static double estimacionVelocidad(double l0, double l1, double l2, double k){
+        return ((l2-l1-l0*Math.log(l2 / l1))/(k*Math.log(l2 / l1)));
+    }
+
+    static double v2d(double[] data, double l0, double lk0, double lk){
+        double[] mm = new double[lon];
+        mm[1] = 0;
+        for(int i = 1; i<lon; i++) {
+            mm[i] = mm[i-1] + myPos(data[i], lk0, lk);
+        }
+        double auxmin = Double.POSITIVE_INFINITY;
+        double minindex = 0;
+        for (int j = 0; j<lon; j++){
+            if ( auxmin > mm[j] ){
+                auxmin = mm[j];
+                minindex = j;
+            }
+        }
+        return (estimacionVelocidad(l0, lk0, lk, minindex));
+    }
+
 
     // CALCULA LA VELOCIDAD PARA UN INTERVALO DE DATOS
     // init: indice del primer dato
@@ -128,68 +178,36 @@ public class Deteccion2 {
         result.add(lv);
         return(result);
     }
-    /*
 
-velocidad <- function(data) {
-  tam <- length(data)-1
-  resta <- vector(length=tam)
-  for(i in 1:tam) resta[i] <- data[i+1] - data[i]
-  return (mean(resta))
-}
-
-v2 <- function(data) {
-  #   S <- 0
-  #   for(i in 1:length(data)) {
-  #     S <- S + data[i]
-  #   }
-  #   return(S/length(data))
-
-  return (sum(data)/length(data))
-}
-
-v3 <- function(data) {
-  regresion <- lm(data ~ seq(1, length(data)))
-  return (regresion$coefficients[2]*length(data))
-}
-
-vv3 <- function(data) {
-  regresion <- lm(data ~ seq(1, length(data)))
-  return (regresion$coefficients[2])
-}
-
-estimacionVelocidad <- function(l0, l1, l2, k) {
-  return ((l2-l1-l0*log(l2/l1))/(k*log(l2/l1)))
-}
-
-v2d <- function(data, l0, lk0, lk) {
-  mm <- vector(length=lon)
-  mm[1] <- 0
-  for(i in 2:lon) {
-    mm[i] <- mm[i-1] + mypos(data[i], lk0, lk)
-  }
-  return (estimacionVelocidad(l0, lk0, lk, which.min(mm)))
-}
-
-calculaPuntoCambio <- function(lon, lon2, l0, b0, velocidad, data) {
-  first <- 1
-  last <- lon + lon2
-  lont <- last - first
-  S <- vector(length=lont)
-#   G <- vector(length=lont)
-  for(i in 2+first:last-1) {
-    i1 <- i+1
-    S[i-first] <- 0
-    for(k in i1:last) {
-      lfirst <- l0 + b0*k
-      if(velocidad<0) print("fallo")
-      lsecond <- l0 + b0*i + velocidad*(k-i)
-      s <- mypos(data[k], lfirst, lsecond)
-      S[i-first] <- S[i-first] + s
+    //CALCULA EL PUNTO DONDE SE PRODUCE EL CAMBIO
+    static int calculaPuntoCambio(int lon, int lon2, double l0, double b0, double velocidad, int[] data){
+        int last = lon + lon2;
+        int lont = last - 1;
+        double[] S = new double[lont];
+        for (int i = 2; i<lont; i++){
+            int i1 = i+1;
+            S[i-1] = 0;
+            for (int k = i1; k<last; k++){
+                double lfirst = l0 +b0*(k+1);
+                if (velocidad<0){
+                    System.out.println("fallo");
+                }
+                double lsecond = l0 +b0*i + velocidad*(k-i);
+                double s = myPos(data[k], lfirst, lsecond);
+                S[i-1] = S[i-1] + s;
+            }
+        }
+        double auxmax = 0;
+        int maxindex = 0;
+        for (int i=0; i<S.length; i++){
+            if ( auxmax < S[i]){
+                auxmax = S[i];
+                maxindex = i;
+            }
+        }
+        return (maxindex+1);
     }
-  }
-  #return (which.max(S) + first)
-  return (S)
-}
+    /*
 
 # arrayVel = c(0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1, 1.5, 2, 2.5, 3)
 # arrayVel = c(0.00, 0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1, 1.5, 2, 2.5, 3)
