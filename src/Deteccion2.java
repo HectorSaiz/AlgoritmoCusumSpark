@@ -310,59 +310,72 @@ for(n in 1:length(arrayLambda)) {
         g[1] <- 0
         alarma <- FALSE
         cc <- 'a'
-        ## Detecta que ha ocurrido un cambio
-        for(i in 2:(lon+lon2)) {
-          lbefore <- l0 + i*b0 #Lambda si no hay cambio
-          lafter <- lbefore + l0/2 #Un poco despues de lbefore. Lo que suma debe ser constante
-          if(dpois(data[i], lambda=lbefore) !=0) {
-            #           s <- log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
-            s <- mypos(data[i], lbefore, lafter)
-            #           p[i] <- p[i-1] + log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
-            p[i] <- p[i-1] + s
-            if((g[i-1] + s) < 0) g[i] <- 0
-            else g[i] <- g[i-1] + s
-            if(g[i] > threshold & !alarma) {
-              alarmi <- i
-              alarma <- TRUE
-              arl[j] <- alarmi - lon
+        */
+
+    static void funct_main_partido(){
+        // Detecta que ha ocurrido un cambio
+        for (int i=1; i<(lon+lon2); i++){
+            double lbefore = l0 + i*b0; // Lambda si no hay cambio
+            double lafter = lbefore + l0/2; //Un poco despues de lbefore. Lo que suma deb ser constante
+            if (poissonFunction(data[i], lbefore) != 0) {
+                // s <- log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
+                s = myPos(data[i], lbefore, lafter);
+                // p[i] <- p[i-1] + log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
+                p[i] = p[i-1] + s;
+                if((g[i-1] + s) < 0){
+                    g[i] = 0;
+                }
+                else {
+                    g[i] = g[i-1] + s;
+                }
+                if(g[i] > threshold & !alarma) {
+                    alarmi = i;
+                    alarma = true;
+                    arl[j] = alarmi - lon;
+                }
             }
-          }
         }
-
-        #       cc <- 'b'
+        // cc = 'b'
         if(alarmi > lon) {
-          ### DESPUES ESTIMO LA VELOCIDAD DESPUES DEL CAMBIO
-          # lv <- l0 + b0*1000
-          lv <- l0 + b0*lon
-          # La siguiente línea es buena idea para datos de twitter
-          #       lfin <- lv + v2d(data[lon+1:lon2], l0, lv, lv+b1*lon2)*lon2
-          #       lfin <- lv + b0*lon2
-#                 lfin <- lv + b1 * lon2
-#           vel3 <- 0
-          vel3 <- vv3(data[(lon+1):(lon+lon2)])
-          lfin <- lv + v3(data[(lon+1):(lon+lon2)])
-          #       lfin <- lv + v2(data[(lon+1):(lon+lon2)])*lon2
-          #       print(v2(data[(lon+1):(lon+lon2]))
-          #       lfin <- 3*lv
-          #       vv <- velocidad(data[lon:(lon+lon2)])
-          #       vv <- velocidad(data[lon:alarmi])
-          #       lfin <- lv + vv * lon2
-          #         lfin <- data[lon+lon2] # Si tomo el último dato es bastante aceptable
-          #         lfin <- data[alarmi]
-
-          for(k in 1:nven) {
-            lk <- lv + (lfin-lv)/nven
-            #         mp[k,1] <- log(dpois(data[lon+1], lk)/dpois(data[lon+1], lv))
-            mp[k,1] <- mypos(data[lon+1], lv, lk)
-          }
-          for(i in 2:lon2) {
-            for(k in 1:nven) {
-              lk <- lv + k * (lfin-lv)/nven
-              lk0 <- lv + (k-1) * (lfin-lv)/nven
-              #           mp[k,i] <- mp[k,i-1] + log(dpois(data[i+lon], lk)/dpois(data[i+lon], lk0))
-              mp[k,i] <- mp[k,i-1] + mypos(data[i+lon], lk0, lk)
+            // DESPUES ESTIMO LA VELOCIDAD DESPUES DEL CAMBIO
+            // lv <- l0 + b0*1000
+            double lv = l0 + b0 * lon;
+            // La siguiente línea es buena idea para datos de twitter
+            //       lfin <- lv + v2d(data[lon+1:lon2], l0, lv, lv+b1*lon2)*lon2
+            //       lfin <- lv + b0*lon2
+            //                 lfin <- lv + b1 * lon2
+            //           vel3 <- 0
+            double[] datav3 = new double[lon2];
+            for (int i = 0; i < lon2; i++) {
+                datav3[i] = data[i + lon];
             }
-          }
+            double vel3 = vv3(datav3);
+            double lfin = lv + v3(datav3);
+            //       lfin <- lv + v2(data[(lon+1):(lon+lon2)])*lon2
+            //       print(v2(data[(lon+1):(lon+lon2]))
+            //       lfin <- 3*lv
+            //       vv <- velocidad(data[lon:(lon+lon2)])
+            //       vv <- velocidad(data[lon:alarmi])
+            //       lfin <- lv + vv * lon2
+            //         lfin <- data[lon+lon2] # Si tomo el último dato es bastante aceptable
+            //         lfin <- data[alarmi]
+            for (int k = 0; k < nven; k++) {
+                double lk = lv + (lfin - lv) / nven;
+                //         mp[k,1] <- log(dpois(data[lon+1], lk)/dpois(data[lon+1], lv))
+                mp[k][0] = myPos(data[lon], lv, lk);
+            }
+            for (int i = 1; i < lon2; i++) {
+                for (int k = 0; k < nven; k++) {
+                    double lk = lv + k * (lfin - lv) / nven;
+                    double lk0 = lv + (k - 1) * (lfin - lv) / nven;
+                    //           mp[k,i] <- mp[k,i-1] + log(dpois(data[i+lon], lk)/dpois(data[i+lon], lk0))
+                    mp[k][i] = mp[k][i - 1] + myPos(data[i + lon], lk0, lk);
+                }
+            }
+        }
+    }
+
+        /*
 
           #Regresion de los datos
           d <- vector(length=nven)
