@@ -251,16 +251,22 @@ public class Deteccion {
         int[] lista = new int[2001];
         int i = 0;
         double incremento = 0.1;
-        while ( i < 1000 ){
+        
+        for (int i = 0; i < 1000; i++ ){
+            lista[i] =  p.nextPoisson( ((double) i) * incremento);
+            System.out.println(lista[i]);
+        }
+        
+        /**while ( i < 1000 ){
             lista[i] =  p.nextPoisson( ((double) i) * incremento);
             System.out.println(lista[i]);
 //            System.out.println("Iteración " + i +": " + p.nextPoisson(((double) i) * incremento));
             i++;
-        }
+        } **/
         incremento = 0.25;
 
 
-        for (int j = i; j < 2001; j++) {
+        for (int j = 10001; j < 2001; j++) {
             lista[j] =  p.nextPoisson( ((double) j) * incremento);
             System.out.println(lista[j]);
 //            System.out.println("Iteración " + j +": " + p.nextPoisson(((double) j) * incremento));
