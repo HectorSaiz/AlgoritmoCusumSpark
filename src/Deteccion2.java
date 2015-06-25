@@ -208,11 +208,11 @@ public class Deteccion2 {
     //CALCULA EL PUNTO DONDE SE PRODUCE EL CAMBIO
     static double[] calculaPuntoCambio(int lon, int lon2, double l0, double b0, double velocidad, double[] data){
         int last = lon + lon2;
-        int lont = last - 1;
+        int lont = last - first;
         double[] S = new double[lont];
-        for (int i = 2; i<lont; i++){
+        for (int i = first; i<last; i++){
             int i1 = i+1;
-            S[i-1] = 0;
+            S[i-first] = 0;
             for (int k = i1; k<last; k++){
                 double lfirst = l0 +b0*(k+1);
                 if (velocidad<0){
@@ -220,7 +220,7 @@ public class Deteccion2 {
                 }
                 double lsecond = l0 +b0*i + velocidad*(k-i);
                 double s = myPos(data[k], lfirst, lsecond);
-                S[i-1] = S[i-1] + s;
+                S[i-first] = S[i-first] + s;
             }
         }
         return S;
@@ -259,7 +259,7 @@ public class Deteccion2 {
 //                for(j in 1:exp) {
 
                 j = 0;
-                while (j <= exp){
+                while (j < exp){
                     System.out.println("Experimento: " + j);
 //                    # Inicio las constantes
 //                    #       l0 <- 5.0 #Lambda inicial
@@ -276,7 +276,7 @@ public class Deteccion2 {
                         data[i] = poisson.nextPoisson(l);
                     }
 
-                    first = lon + 1;
+                    first = lon;
                     last = lon + lon2;
                     for (int i = first; i < last; i++) {
                         l = l0 + b0*lon + b1*(i-lon);
@@ -359,7 +359,7 @@ public class Deteccion2 {
                             x[i] = i + 1;
                             double auxmin = Double.POSITIVE_INFINITY;
                             double minindex = 0;
-                            for (int j = 0; j < lon; j++) {
+                            for (int j = 0; j < lon2; j++) {
                                 if (auxmin > mp[i][j]) {
                                     auxmin = mp[i][j];
                                     minindex = j;
@@ -412,7 +412,7 @@ public class Deteccion2 {
                                 x[i] = i + 1;
                                 double auxmin = Double.POSITIVE_INFINITY;
                                 double minindex = 0;
-                                for (int j = 0; j < lon; j++) {
+                                for (int j = 0; j < lon2; j++) {
                                     if (auxmin > mp[i][j]) {
                                         auxmin = mp[i][j];
                                         minindex = j;
