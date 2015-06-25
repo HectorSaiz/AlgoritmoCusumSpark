@@ -1,10 +1,30 @@
 import java.util.ArrayList;
+import java.util.DoubleSummaryStatistics;
 import java.util.List;
 
 /**
  * Created by root on 6/24/15.
  */
 public class Deteccion2 {
+
+    private static double[] arrayVel = new double[] {0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1, 1.5, 2, 2.5, 3};   // Array de velocidades de las rectas, es decir de las inclinaciones
+    private static double[] arrayThreshold = new double[] {7, 9.8, 14.4};  // Array con los posibles valores umbral para los experimentos
+    private static int[] arrayLambda = new int[] {5, 10, 20};  // Array con las posibles lambdas a tomar en los experimentos
+
+    private static int lon = 100;  // Cantidad de números antes de introducir en cambio
+    private static int lon2 = 50;  // Cantidad de números después de introducir el cambio
+    private static int exp = 100;  // Cantidad de experimentos a realizar TODO incremenar hasta los 10000
+    private static int nven = 15;  // Cantidad de ventanas a utilizar
+    private static int errorVelocidad = 0;
+    private static int errorArl = 0;
+
+    private static double threshold, l0, l, b0, b1;
+    private static double[][] mp;
+    private static double[] data, e, arl, velocidades, velocidades2, time, time2, timeTeorica, timeDatos, p, g, v;
+    private static int j, alarmi, first, last;
+    private static Poisson poisson = new Poisson();
+    private static boolean alarma;
+    private static String cc;
 
     // Factorial
     static double Factorial(double n) {
@@ -49,6 +69,11 @@ public class Deteccion2 {
         var = var / x.length;
         var -= Math.pow(mean(x), 2);
         return var;
+    }
+
+    static double sd (double[] x)
+    {
+        return Math.sqrt(var(x));
     }
 
     // Regresion lineal Y = b0 + b1 * X
@@ -216,22 +241,6 @@ public class Deteccion2 {
     static void detectaCambio() {
         // Atributos
 
-        double[] arrayVel = new double[] {0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1, 1.5, 2, 2.5, 3};   // Array de velocidades de las rectas, es decir de las inclinaciones
-        double[] arrayThreshold = new double[] {7, 9.8, 14.4};  // Array con los posibles valores umbral para los experimentos
-        int[] arrayLambda = new int[] {5, 10, 20};  // Array con las posibles lambdas a tomar en los experimentos
-
-        int lon = 100;  // Cantidad de números antes de introducir en cambio
-        int lon2 = 50;  // Cantidad de números después de introducir el cambio
-        int exp = 100;  // Cantidad de experimentos a realizar TODO incremenar hasta los 10000
-        int nven = 15;  // Cantidad de ventanas a utilizar
-        int errorVelocidad = 0;
-        int errorArl = 0;
-
-        double threshold, l0, b0, b1;
-        List e, arl, data, velocidades, velocidades2, time, time2, timeTeorica, timeDatos;
-        double[][] mp;
-        int j;
-
 //         for (int i = 0; i < 3; i++) {
         for (int n = 0; n < arrayLambda.length; n++) {
 //            n = 3;
@@ -245,26 +254,56 @@ public class Deteccion2 {
                 b1 = arrayVel[mm];
 //                for (double b1 : arrayVel) {
 
-                e = new ArrayList<Double>(exp);
-                arl = new ArrayList<Double>(exp);
+                e = new double[exp];
+                arl = new double[exp];
 
-                data = new ArrayList<Double>(lon+lon2);
+                data = new double[lon+lon2];
 
                 mp = new double [nven][lon2];
-                velocidades = new ArrayList<Double>(exp);
-                velocidades2 = new ArrayList<Double>(exp);
+                velocidades = new double[exp];
+                velocidades2 = new double[exp];
 
-                time = new ArrayList<Double>(exp);
-                time2 = new ArrayList<Double>(exp);
-                timeTeorica = new ArrayList<Double>(exp);
-                timeDatos = new ArrayList<Double>(exp);
+                time = new double[exp];
+                time2 = new double[exp];
+                timeTeorica = new double[exp];
+                timeDatos = new double[exp];
 
 //                for(j in 1:exp) {
 
                 j = 0;
                 while (j <= exp){
                     System.out.println("Experimento: " + j);
-//
+//                    # Inicio las constantes
+//                    #       l0 <- 5.0 #Lambda inicial
+//                    #   l0 <- 5
+//                    #       b0 <- 0.09 #Velocidad antes del cambio
+//                    #       b0 <- 0.0
+//                    #     b1 <- 0.4 #Velocidad despues del cambio
+//                    #     b1 <- 0.35 #Solo llega hasta 2
+                    alarmi = lon + lon2;
+//                    #       alarmi <- -1
+
+                    for (int i = 0; i < lon; i++) {
+                        l = l0 + i*b0;
+                        data[i] = poisson.nextPoisson(l);
+                    }
+
+                    first = lon + 1;
+                    last = lon + lon2;
+                    for (int i = first; i < last; i++) {
+                        l = l0 + b0*lon + b1*(i-lon);
+                        data[i] = poisson.nextPoisson(l);
+                    }
+
+                    p = new double[lon+lon2];
+                    g = new double[lon+lon2];
+                    v = new double[lon+lon2];
+
+                    p[1] = 0;
+                    v[1] = 0;
+                    alarma = false;
+
+                    cc = "a";
                 }
 
             }
@@ -272,42 +311,7 @@ public class Deteccion2 {
 
     }
 
-/*
-      #     for(j in 1:exp) {
-      j <- 1
-      while(j <= exp) {
-        cat("Experimento: ", j, "\r")
-        # Inicio las constantes
-        #       l0 <- 5.0 #Lambda inicial
-        #   l0 <- 5
-        #       b0 <- 0.09 #Velocidad antes del cambio
-        #       b0 <- 0.0
-        #     b1 <- 0.4 #Velocidad despues del cambio
-        #     b1 <- 0.35 #Solo llega hasta 2
-        alarmi <- lon + lon2
-        #       alarmi <- -1
 
-        for(i in 1:lon) {
-          l <- l0 + i*b0
-          data[i] <- rpois(1, lambda=l)
-        }
-
-        first=lon+1
-        last= lon + lon2
-        for(i in first:last) {
-          l <- l0 + b0*lon + b1*(i-lon)
-          data[i] <- rpois(1, lambda = l)
-        }
-
-        p <- vector(length=lon+lon2)
-        v <- vector(length=lon+lon2)
-        g <- vector(length=lon+lon2)
-
-        p[1] <- 0
-        g[1] <- 0
-        alarma <- FALSE
-        cc <- 'a'
-        */
 
     static void funct_main_partido(){
         // Detecta que ha ocurrido un cambio
@@ -466,21 +470,48 @@ public class Deteccion2 {
         }
 
       } ### Fin de los experimentos
+*/
+    public void muestroResultados () {
+        String output;
+
+        /**
+         #     output <- c("\n", b1, "___", mean(arl[arl>0]), "___", mean(time[time>0]), "___", sd(time[time>0]), "\n")
+         #     output <- toString(c(b1, mean(arl[arl>0]), mean(time[time>0]), sd(time[time>0])))
+         #     output <- c(threshold, l0, b1, mean(velocidades), sd(velocidades), mean(arl[arl>0]), mean(time[time>0]), sd(time[time>0]))
+         #     output <- sprintf("%f %f %f %f %f %f %f %f %f %f %f %f", threshold, l0, b0,  b1, lv + b1 * lon2, lfin, vel3, mean(velocidades), sd(velocidades), mean(arl[arl>0]), sd(arl[arl>0]), mean(time[time>100]), sd(time[time>100]))
+         */
 
 
-      ### Muestro los resultados
-      #     output <- c("\n", b1, "___", mean(arl[arl>0]), "___", mean(time[time>0]), "___", sd(time[time>0]), "\n")
-      #     output <- toString(c(b1, mean(arl[arl>0]), mean(time[time>0]), sd(time[time>0])))
-      #     output <- c(threshold, l0, b1, mean(velocidades), sd(velocidades), mean(arl[arl>0]), mean(time[time>0]), sd(time[time>0]))
-      #     output <- sprintf("%f %f %f %f %f %f %f %f %f %f %f %f", threshold, l0, b0,  b1, lv + b1 * lon2, lfin, vel3, mean(velocidades), sd(velocidades), mean(arl[arl>0]), sd(arl[arl>0]), mean(time[time>100]), sd(time[time>100]))
-      output <- paste(threshold, l0, b0,  b1, lv + b1 * lon2, lfin, vel3,
-                      mean(velocidades), mean(velocidades2), sd(velocidades), mean(arl[arl>0]), sd(arl[arl>0]),
-                      mean(time), sd(time), mean(time2), sd(time2),
-                      mean(timeTeorica), sd(timeTeorica),
-                      mean(timeDatos), sd(timeDatos),
-                      errorVelocidad, errorArl,
-                      sep=" ")
-      print(output)
+        List arlMC = new ArrayList<Double>();
+        for (double v1 : arl) {
+            if (v1 > 0) arlMC.add(v1);
+        }
+        double[] arlMayoresCero = new double[arlMC.size()];
+        for (int i =0; i < arlMC.size(); i++){
+            arlMayoresCero[i] = (double) arlMC.get(i);
+        }
+
+        output = "" + threshold + " " + l0 + " " + b0 + " " + b1 + " " + (lv + b1 * lon2) + " " + lfin + " " + vel3
+                + " " + mean(velocidades) + " " + mean(velocidades2) + " " + sd(velocidades) + " " + mean(arlMayoresCero) + " " + sd(arlMayoresCero)
+                + " " + mean(time) + " " + sd(time) + " " + mean(time2) + " " + sd(time2)
+                + " " + mean(timeTeorica) + " " + sd(timeTeorica)
+                + " " + mean(timeDatos) + " " + sd(timeDatos)
+                + " " + errorVelocidad + " " + errorArl;
+
+        System.out.println(output);
+
+
+
+    }
+
+
+
+
+
+
+
+
+/*
       write.table(output, file="resultados-5-7-250.csv", row.names=FALSE, append=TRUE, sep="&", col.names=F)
       p3i <- length(time[time==97])/length(time[time>0])
       p3d <- length(time[time==103])/length(time[time>0])
