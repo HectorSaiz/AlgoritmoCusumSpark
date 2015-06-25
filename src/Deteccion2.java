@@ -18,7 +18,7 @@ public class Deteccion2 {
     private static int errorVelocidad = 0;
     private static int errorArl = 0;
 
-    private static double threshold, l0, l, b0, b1;
+    private static double threshold, l0, l, b0, b1, lv, lfin, vel3;
     private static double[][] mp;
     private static double[] data, e, arl, velocidades, velocidades2, time, time2, timeTeorica, timeDatos, p, g, v;
     private static int j, alarmi, first, last;
@@ -206,7 +206,7 @@ public class Deteccion2 {
     }
 
     //CALCULA EL PUNTO DONDE SE PRODUCE EL CAMBIO
-    static int calculaPuntoCambio(int lon, int lon2, double l0, double b0, double velocidad, int[] data){
+    static double[] calculaPuntoCambio(int lon, int lon2, double l0, double b0, double velocidad, double[] data){
         int last = lon + lon2;
         int lont = last - 1;
         double[] S = new double[lont];
@@ -223,20 +223,8 @@ public class Deteccion2 {
                 S[i-1] = S[i-1] + s;
             }
         }
-        double auxmax = 0;
-        int maxindex = 0;
-        for (int i=0; i<S.length; i++){
-            if ( auxmax < S[i]){
-                auxmax = S[i];
-                maxindex = i;
-            }
-        }
-        return (maxindex+1);
+        return S;
     }
-    /*
-
-*/
-
 
     static void detectaCambio() {
         // Atributos
@@ -304,213 +292,217 @@ public class Deteccion2 {
                     alarma = false;
 
                     cc = "a";
-                }
 
-            }
-        }
-
-    }
-
-
-
-    static void funct_main_partido(){
-        // Detecta que ha ocurrido un cambio
-        for (int i=1; i<(lon+lon2); i++){
-            double lbefore = l0 + i*b0; // Lambda si no hay cambio
-            double lafter = lbefore + l0/2; //Un poco despues de lbefore. Lo que suma deb ser constante
-            if (poissonFunction(data[i], lbefore) != 0) {
-                // s <- log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
-                s = myPos(data[i], lbefore, lafter);
-                // p[i] <- p[i-1] + log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
-                p[i] = p[i-1] + s;
-                if((g[i-1] + s) < 0){
-                    g[i] = 0;
-                }
-                else {
-                    g[i] = g[i-1] + s;
-                }
-                if(g[i] > threshold & !alarma) {
-                    alarmi = i;
-                    alarma = true;
-                    arl[j] = alarmi - lon;
-                }
-            }
-        }
-        // cc = 'b'
-        if(alarmi > lon) {
-            // DESPUES ESTIMO LA VELOCIDAD DESPUES DEL CAMBIO
-            // lv <- l0 + b0*1000
-            double lv = l0 + b0 * lon;
-            // La siguiente línea es buena idea para datos de twitter
-            //       lfin <- lv + v2d(data[lon+1:lon2], l0, lv, lv+b1*lon2)*lon2
-            //       lfin <- lv + b0*lon2
-            //                 lfin <- lv + b1 * lon2
-            //           vel3 <- 0
-            double[] datav3 = new double[lon2];
-            for (int i = 0; i < lon2; i++) {
-                datav3[i] = data[i + lon];
-            }
-            double vel3 = vv3(datav3);
-            double lfin = lv + v3(datav3);
-            //       lfin <- lv + v2(data[(lon+1):(lon+lon2)])*lon2
-            //       print(v2(data[(lon+1):(lon+lon2]))
-            //       lfin <- 3*lv
-            //       vv <- velocidad(data[lon:(lon+lon2)])
-            //       vv <- velocidad(data[lon:alarmi])
-            //       lfin <- lv + vv * lon2
-            //         lfin <- data[lon+lon2] # Si tomo el último dato es bastante aceptable
-            //         lfin <- data[alarmi]
-            for (int k = 0; k < nven; k++) {
-                double lk = lv + (lfin - lv) / nven;
-                //         mp[k,1] <- log(dpois(data[lon+1], lk)/dpois(data[lon+1], lv))
-                mp[k][0] = myPos(data[lon], lv, lk);
-            }
-            for (int i = 1; i < lon2; i++) {
-                for (int k = 0; k < nven; k++) {
-                    double lk = lv + k * (lfin - lv) / nven;
-                    double lk0 = lv + (k - 1) * (lfin - lv) / nven;
-                    //           mp[k,i] <- mp[k,i-1] + log(dpois(data[i+lon], lk)/dpois(data[i+lon], lk0))
-                    mp[k][i] = mp[k][i - 1] + myPos(data[i + lon], lk0, lk);
-                }
-            }
-        }
-    }
-
-        /*
-
-          #Regresion de los datos
-          d <- vector(length=nven)
-          x <- seq(from=1, to=nven)
-          for(i in 1:nven) {
-            d[i] <- which.min(mp[i,])
-          }
-          regresion <- lm(d ~ x)
-          #Fin de la regresion
-          velocidades[j] <- (lfin-lv)/nven/regresion$coefficients[2] #Tamanyo una ventana / y de la regresion
-          velocidades2[j] <- velocidades[j]
-          #if(velocidades2[j]>0 && abs(velocidades2[j] - b1) < b1) {
-          #  time2[j] <- calculaPuntoCambio(lon, lon2, l0, b0, velocidades2[j], data)
-          #}
-
-          # Calculo el punto de cambio con la velocidad teórica
-          #timeTeorica[j] <- calculaPuntoCambio(lon, lon2, l0, b0, b1, data)
-          # Fin del cálculo con la velocidad teórica
-
-          # Calculo el punto de cambio con la velocidad estimada a partir de los datos
-          #if(vel3>0 && abs(vel3 - b1) < b1) {
-          #  timeDatos[j] <- calculaPuntoCambio(lon, lon2, l0, b0, vel3, data)
-          #}
-          # Fin del cálculo con la velocidad estimada a partir de los datos
-
-          #           Doy una nueva pasada con la velocidad calculada
-          if(velocidades[j]>0 && abs(velocidades[j] - b1) < b1) {
-                      lv <- l0 + b0*lon
-
-                      lfin <- lv + velocidades[j]*lon2
-
-                      for(k in 1:nven) {
-                        lk <- lv + (lfin-lv)/nven
-                        #         mp[k,1] <- log(dpois(data[lon+1], lk)/dpois(data[lon+1], lv))
-                        mp[k,1] <- mypos(data[lon+1], lv, lk)
-                      }
-                      for(i in 2:lon2) {
-                        for(k in 1:nven) {
-                          lk <- lv + k * (lfin-lv)/nven
-                          lk0 <- lv + (k-1) * (lfin-lv)/nven
-                          #           mp[k,i] <- mp[k,i-1] + log(dpois(data[i+lon], lk)/dpois(data[i+lon], lk0))
-                          mp[k,i] <- mp[k,i-1] + mypos(data[i+lon], lk0, lk)
+                    // Detecta que ha ocurrido un cambio
+                    for (int i = 1; i < (lon + lon2); i++) {
+                        double lbefore = l0 + i * b0; // Lambda si no hay cambio
+                        double lafter = lbefore + l0 / 2; //Un poco despues de lbefore. Lo que suma deb ser constante
+                        if (poissonFunction(data[i], lbefore) != 0) {
+                            // s <- log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
+                            double s = myPos(data[i], lbefore, lafter);
+                            // p[i] <- p[i-1] + log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
+                            p[i] = p[i - 1] + s;
+                            if ((g[i - 1] + s) < 0) {
+                                g[i] = 0;
+                            } else {
+                                g[i] = g[i - 1] + s;
+                            }
+                            if (g[i] > threshold & !alarma) {
+                                alarmi = i;
+                                alarma = true;
+                                arl[j] = alarmi - lon;
+                            }
                         }
-                      }
-                      #Regresion de los datos
-                      d <- vector(length=nven)
-                      x <- seq(from=1, to=nven)
-                      for(i in 1:nven) {
-                        d[i] <- which.min(mp[i,])
-                      }
-                      regresion <- lm(d ~ x)
-                      #Fin de la regresion
-                      velocidades[j] <- (lfin-lv)/nven/regresion$coefficients[2] #Tamanyo una ventana / y de la regresion
-          }
-          #           Fin de la segunda pasada
+                    }
+                    // cc = 'b'
+                    if (alarmi > lon) {
+                        // DESPUES ESTIMO LA VELOCIDAD DESPUES DEL CAMBIO
+                        // lv <- l0 + b0*1000
+                        lv = l0 + b0 * lon;
+                        // La siguiente línea es buena idea para datos de twitter
+                        //       lfin <- lv + v2d(data[lon+1:lon2], l0, lv, lv+b1*lon2)*lon2
+                        //       lfin <- lv + b0*lon2
+                        //                 lfin <- lv + b1 * lon2
+                        //           vel3 <- 0
+                        double[] datav3 = new double[lon2];
+                        for (int i = 0; i < lon2; i++) {
+                            datav3[i] = data[i + lon];
+                        }
+                        vel3 = vv3(datav3);
+                        lfin = lv + v3(datav3);
+                        //       lfin <- lv + v2(data[(lon+1):(lon+lon2)])*lon2
+                        //       print(v2(data[(lon+1):(lon+lon2]))
+                        //       lfin <- 3*lv
+                        //       vv <- velocidad(data[lon:(lon+lon2)])
+                        //       vv <- velocidad(data[lon:alarmi])
+                        //       lfin <- lv + vv * lon2
+                        //         lfin <- data[lon+lon2] # Si tomo el último dato es bastante aceptable
+                        //         lfin <- data[alarmi]
+                        for (int k = 0; k < nven; k++) {
+                            double lk = lv + (lfin - lv) / nven;
+                            //         mp[k,1] <- log(dpois(data[lon+1], lk)/dpois(data[lon+1], lv))
+                            mp[k][0] = myPos(data[lon], lv, lk);
+                        }
+                        for (int i = 1; i < lon2; i++) {
+                            for (int k = 0; k < nven; k++) {
+                                double lk = lv + k * (lfin - lv) / nven;
+                                double lk0 = lv + (k - 1) * (lfin - lv) / nven;
+                                //           mp[k,i] <- mp[k,i-1] + log(dpois(data[i+lon], lk)/dpois(data[i+lon], lk0))
+                                mp[k][i] = mp[k][i - 1] + myPos(data[i + lon], lk0, lk);
+                            }
+                        }
+
+                        // Regresion de los datos
+                        double[] d = new double[nven];
+                        double[] x = new double[nven];
+                        for (int i = 0; i < nven; i++) {
+                            x[i] = i + 1;
+                            double auxmin = Double.POSITIVE_INFINITY;
+                            double minindex = 0;
+                            for (int j = 0; j < lon; j++) {
+                                if (auxmin > mp[i][j]) {
+                                    auxmin = mp[i][j];
+                                    minindex = j;
+                                }
+                            }
+                            d[i] = minindex;
+                        }
+                        List<Double> regresion = regLineal(d, x);
+                        //Fin de la regresion
+                        velocidades[j] = (lfin - lv) / nven / regresion.get(1); //Tamaño una ventana / y de la regresion
+                        velocidades2[j] = velocidades[j];
+
+                        //if(velocidades2[j]>0 && abs(velocidades2[j] - b1) < b1) {
+                        //  time2[j] <- calculaPuntoCambio(lon, lon2, l0, b0, velocidades2[j], data)
+                        //}
+
+                        // Calculo el punto de cambio con la velocidad teórica
+                        //timeTeorica[j] <- calculaPuntoCambio(lon, lon2, l0, b0, b1, data)
+                        // Fin del cálculo con la velocidad teórica
+
+                        // Calculo el punto de cambio con la velocidad estimada a partir de los datos
+                        //if(vel3>0 && abs(vel3 - b1) < b1) {
+                        //  timeDatos[j] <- calculaPuntoCambio(lon, lon2, l0, b0, vel3, data)
+                        //}
+                        // Fin del cálculo con la velocidad estimada a partir de los datos
+
+                        //           Doy una nueva pasada con la velocidad calculada
+                        if (velocidades[j] > 0 && Math.abs(velocidades[j] - b1) < b1) {
+                            lv = l0 + b0 * lon;
+
+                            lfin = lv + velocidades[j] * lon2;
+
+                            for (int k = 0; k < nven; k++) {
+                                double lk = lv + (lfin - lv) / nven;
+                                // mp[k,1] <- log(dpois(data[lon+1], lk)/dpois(data[lon+1], lv))
+                                mp[k][0] = myPos(data[lon], lv, lk);
+                            }
+                            for (int i = 1; i < lon2; i++) {
+                                for (int k = 0; k < nven; k++) {
+                                    double lk = lv + (k + 1) * (lfin - lv) / nven;
+                                    double lk0 = lv + k * (lfin - lv) / nven;
+                                    // mp[k,i] <- mp[k,i-1] + log(dpois(data[i+lon], lk)/dpois(data[i+lon], lk0))
+                                    mp[k][i] = mp[k][i - 1] + myPos(data[i + lon], lk0, lk);
+                                }
+                            }
+                            // Regresion de los datos
+                            d = new double[nven];
+                            x = new double[nven];
+                            for (int i = 0; i < nven; i++) {
+                                x[i] = i + 1;
+                                double auxmin = Double.POSITIVE_INFINITY;
+                                double minindex = 0;
+                                for (int j = 0; j < lon; j++) {
+                                    if (auxmin > mp[i][j]) {
+                                        auxmin = mp[i][j];
+                                        minindex = j;
+                                    }
+                                }
+                                d[i] = minindex;
+                            }
+                            regresion = regLineal(d, x);
+                            // Fin de la regresion
+                            velocidades[j] = (lfin - lv) / nven / regresion.get(1); //Tamaño una ventana / y de la regresion
+                        }
+                        // Fin de la segunda pasada
+
+                        // FINALMENTE CALCULO EL PUNTO DE CAMBIO
+                        // Esta condición es para eliminar velocidades erroneas
+                        if (velocidades[j] > 0 && Math.abs(velocidades[j] - b1) < b1) {
+                            //             first <- 1
+                            //             last <- lon + lon2
+                            //             lont <- last - first
+                            //             S <- vector(length=lont)
+                            //             G <- vector(length=lont)
+                            //             for(i in 2+first:last-1) {
+                            //               i1 <- i+1
+                            //               S[i-first] <- 0
+                            //               for(k in i1:last) {
+                            //                 lfirst <- l0 + b0*k
+                            //                 if(velocidades[j]<0) print("fallo")
+                            //                 lsecond <- l0 + b0*i + velocidades[j]*(k-i)
+                            //                 s <- mypos(data[k], lfirst, lsecond)
+                            //                 S[i-first] <- S[i-first] + s
+                            //               }
+                            //             }
+                            //             time[j] <- which.max(S) + first
+                            double[] SS = calculaPuntoCambio(lon, lon2, l0, b0, velocidades[j], data);
+                            double auxmax = 0;
+                            int maxindex = 0;
+                            for (int i=0; i<SS.length; i++){
+                                if ( auxmax < SS[i]){
+                                    auxmax = SS[i];
+                                    maxindex = i;
+                                }
+                            }
+                            time[j] = maxindex + first;
+                            // time[j] <- calculaPuntoCambio(lon, lon2, l0, b0, velocidades[j], data)
+                            j = j + 1;
+                        } else {
+                            velocidades[j] = -2;
+                            errorVelocidad = errorVelocidad + 1;
+                        }
+                    } else {
+                        time[j] = -1;
+                        velocidades[j] = -1;
+                        errorArl = errorArl + 1;
+                    }
+                }
+                String output;
+
+                /**
+                 #     output <- c("\n", b1, "___", mean(arl[arl>0]), "___", mean(time[time>0]), "___", sd(time[time>0]), "\n")
+                 #     output <- toString(c(b1, mean(arl[arl>0]), mean(time[time>0]), sd(time[time>0])))
+                 #     output <- c(threshold, l0, b1, mean(velocidades), sd(velocidades), mean(arl[arl>0]), mean(time[time>0]), sd(time[time>0]))
+                 #     output <- sprintf("%f %f %f %f %f %f %f %f %f %f %f %f", threshold, l0, b0,  b1, lv + b1 * lon2, lfin, vel3, mean(velocidades), sd(velocidades), mean(arl[arl>0]), sd(arl[arl>0]), mean(time[time>100]), sd(time[time>100]))
+                 */
 
 
+                List arlMC = new ArrayList<Double>();
+                for (double v1 : arl) {
+                    if (v1 > 0) arlMC.add(v1);
+                }
+                double[] arlMayoresCero = new double[arlMC.size()];
+                for (int i =0; i < arlMC.size(); i++){
+                    arlMayoresCero[i] = (double) arlMC.get(i);
+                }
 
-          ### FINALMENTE CALCULO EL PUNTO DE CAMBIO
-          # Esta condición es para eliminar velocidades erroneas
-          if(velocidades[j]>0 && abs(velocidades[j] - b1) < b1) {
-#             first <- 1
-#             last <- lon + lon2
-#             lont <- last - first
-#             S <- vector(length=lont)
-#             G <- vector(length=lont)
-#             for(i in 2+first:last-1) {
-#               i1 <- i+1
-#               S[i-first] <- 0
-#               for(k in i1:last) {
-#                 lfirst <- l0 + b0*k
-#                 if(velocidades[j]<0) print("fallo")
-#                 lsecond <- l0 + b0*i + velocidades[j]*(k-i)
-#                 s <- mypos(data[k], lfirst, lsecond)
-#                 S[i-first] <- S[i-first] + s
-#               }
-#             }
-#             time[j] <- which.max(S) + first
-            SS <- calculaPuntoCambio(lon, lon2, l0, b0, velocidades[j], data)
-            time[j] <- which.max(SS) + first
-            #time[j] <- calculaPuntoCambio(lon, lon2, l0, b0, velocidades[j], data)
-            j <- j+1
-          } else {
-            velocidades[j] <- -2
-            errorVelocidad <- errorVelocidad + 1
-          }
-        } else {
-          time[j] <- -1
-          velocidades[j] <- -1
-          errorArl <- errorArl + 1
+                output = "" + threshold + " " + l0 + " " + b0 + " " + b1 + " " + (lv + b1 * lon2) + " " + lfin + " " + vel3
+                        + " " + mean(velocidades) + " " + mean(velocidades2) + " " + sd(velocidades) + " " + mean(arlMayoresCero) + " " + sd(arlMayoresCero)
+                        + " " + mean(time) + " " + sd(time) + " " + mean(time2) + " " + sd(time2)
+                        + " " + mean(timeTeorica) + " " + sd(timeTeorica)
+                        + " " + mean(timeDatos) + " " + sd(timeDatos)
+                        + " " + errorVelocidad + " " + errorArl;
+
+                System.out.println(output);
+            }
         }
-
-      } ### Fin de los experimentos
-*/
-    public void muestroResultados () {
-        String output;
-
-        /**
-         #     output <- c("\n", b1, "___", mean(arl[arl>0]), "___", mean(time[time>0]), "___", sd(time[time>0]), "\n")
-         #     output <- toString(c(b1, mean(arl[arl>0]), mean(time[time>0]), sd(time[time>0])))
-         #     output <- c(threshold, l0, b1, mean(velocidades), sd(velocidades), mean(arl[arl>0]), mean(time[time>0]), sd(time[time>0]))
-         #     output <- sprintf("%f %f %f %f %f %f %f %f %f %f %f %f", threshold, l0, b0,  b1, lv + b1 * lon2, lfin, vel3, mean(velocidades), sd(velocidades), mean(arl[arl>0]), sd(arl[arl>0]), mean(time[time>100]), sd(time[time>100]))
-         */
-
-
-        List arlMC = new ArrayList<Double>();
-        for (double v1 : arl) {
-            if (v1 > 0) arlMC.add(v1);
-        }
-        double[] arlMayoresCero = new double[arlMC.size()];
-        for (int i =0; i < arlMC.size(); i++){
-            arlMayoresCero[i] = (double) arlMC.get(i);
-        }
-
-        output = "" + threshold + " " + l0 + " " + b0 + " " + b1 + " " + (lv + b1 * lon2) + " " + lfin + " " + vel3
-                + " " + mean(velocidades) + " " + mean(velocidades2) + " " + sd(velocidades) + " " + mean(arlMayoresCero) + " " + sd(arlMayoresCero)
-                + " " + mean(time) + " " + sd(time) + " " + mean(time2) + " " + sd(time2)
-                + " " + mean(timeTeorica) + " " + sd(timeTeorica)
-                + " " + mean(timeDatos) + " " + sd(timeDatos)
-                + " " + errorVelocidad + " " + errorArl;
-
-        System.out.println(output);
-
-
 
     }
 
-
-
-
-
-
-
-
+    public static void main(String[] args){
+        detectaCambio();
+    }
 /*
       write.table(output, file="resultados-5-7-250.csv", row.names=FALSE, append=TRUE, sep="&", col.names=F)
       p3i <- length(time[time==97])/length(time[time>0])
