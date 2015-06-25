@@ -13,7 +13,7 @@ public class Deteccion2 {
 
     private static int lon = 100;  // Cantidad de números antes de introducir en cambio
     private static int lon2 = 50;  // Cantidad de números después de introducir el cambio
-    private static int exp = 100;  // Cantidad de experimentos a realizar TODO incremenar hasta los 10000
+    private static int exp = 10000;  // Cantidad de experimentos a realizar TODO incremenar hasta los 10000
     private static int nven = 15;  // Cantidad de ventanas a utilizar
     private static int errorVelocidad = 0;
     private static int errorArl = 0;
@@ -210,7 +210,7 @@ public class Deteccion2 {
         int last = lon + lon2;
         int lont = last - first;
         double[] S = new double[lont];
-        for (int i = first; i<last; i++){
+        for (int i = 1+first; i<last; i++){
             int i1 = i+1;
             S[i-first] = 0;
             for (int k = i1; k<last; k++){
@@ -260,7 +260,7 @@ public class Deteccion2 {
 
                 j = 0;
                 while (j < exp){
-                    System.out.println("Experimento: " + j);
+                    //System.out.println("Experimento: " + j);
 //                    # Inicio las constantes
 //                    #       l0 <- 5.0 #Lambda inicial
 //                    #   l0 <- 5
@@ -455,7 +455,7 @@ public class Deteccion2 {
                                     maxindex = i;
                                 }
                             }
-                            time[j] = maxindex + first;
+                            time[j] = maxindex + first -1;
                             // time[j] <- calculaPuntoCambio(lon, lon2, l0, b0, velocidades[j], data)
                             j = j + 1;
                         } else {
