@@ -5,12 +5,16 @@ import java.util.Random;
 import java.lang.Math;
 
 /**Distribution.java
- * This class generates various random variables for distributions
+ * This class generates various random variables for Poisson distribution
  * not directly supported in Java
  */
 public class Poisson extends Random {
 
-    public  int nextPoisson(double lambda) {
+    public Poisson() {
+        super();
+    }
+
+    public int nextPoisson(double lambda) {
         double elambda = Math.exp(-1*lambda);
         double product = 1;
         int count =  0;
@@ -22,15 +26,6 @@ public class Poisson extends Random {
         }
         return result;
     }
-
-//    public  double nextExponential(double b) {
-//        double randx;
-//        double result;
-//        randx = nextDouble();
-//        result = -1*b*Math.log(randx);
-//        return result;
-//    }
-
 
 }
 

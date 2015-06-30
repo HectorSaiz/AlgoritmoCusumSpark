@@ -8,95 +8,106 @@ import java.util.List;
  */
 public class Deteccion2 {
 
-    private static double[] arrayVel = new double[] {0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1, 1.5, 2, 2.5, 3};   // Array de velocidades de las rectas, es decir de las inclinaciones
+    private static double[] arrayVel = new double[] {0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1, 1.5, 2, 2.5, 3}; // Array de velocidades de las rectas, es decir de las pendientes
     private static double[] arrayThreshold = new double[] {7, 9.8, 14.4};  // Array con los posibles valores umbral para los experimentos
     private static int[] arrayLambda = new int[] {5, 10, 20};  // Array con las posibles lambdas a tomar en los experimentos
 
     private static int lon = 100;  // Cantidad de números antes de introducir en cambio
     private static int lon2 = 50;  // Cantidad de números después de introducir el cambio
-    private static int exp = 10000;  // Cantidad de experimentos a realizar TODO incremenar hasta los 10000
+    private static int exp = 10000;  // Cantidad de experimentos a realizar
     private static int nven = 15;  // Cantidad de ventanas a utilizar
     private static int errorVelocidad = 0;
     private static int errorArl = 0;
 
     private static double threshold, l0, l, b0, b1, lv, lfin, vel3;
     private static double[][] mp;
-    private static double[] data, e, arl, velocidades, velocidades2, time, time2, timeTeorica, timeDatos, p, g, v;
+    private static double[] data, e, arl, velocidades, velocidades2, time, time2, timeTeorica, timeDatos, p, g;
     private static int j, alarmi, first, last;
-    private static Poisson poisson = new Poisson();
+    private static Poisson poisson = new Poisson(); // Clase encargada de proporcionar números aleatoriamente siguiento una distribución de Poisson
     private static boolean alarma;
 
-    // Factorial
-    static double Factorial(double n) {
-        if (n == 0)
-            return 1;
-        else
-            return n * Factorial(n-1);
+    public Deteccion2() {
+        super();
     }
 
-    // f(x) de es.uji.cusumSpark.Poisson ( dpois(data,lambda) en R )
-    static double poissonFunction(double x, double lambda){
-        return Math.pow(lambda, x) / Factorial(x) * Math.pow(Math.E,-lambda);
+    // Getters and setters
+
+    public static double[] getArrayVel() {
+        return arrayVel;
     }
 
-    // Media
-    static double mean(double[] x){
-        double sum = 0;
-        for (int i = 0; i < x.length; i++){
-            sum += x[i];
-        }
-        double mean = sum / x.length;
-        return mean;
+    public static void setArrayVel(double[] arrayVel) {
+        Deteccion2.arrayVel = arrayVel;
     }
 
-    // Covarianza (x e y tienen la misma length)
-    static double cov(double[] y, double[] x){
-        double cov = 0;
-        for (int i = 0; i < x.length; i++){
-            cov += x[i]*y[i];
-        }
-        cov = cov / x.length;
-        cov -= mean(x)*mean(y);
-        return cov;
+    public static double[] getArrayThreshold() {
+        return arrayThreshold;
     }
 
-    // Varianza   TODO COMPROBAR FORMULA
-    static double var(double[] x){
-        double var = 0;
-        for (int i = 0; i < x.length; i++){
-            var += Math.pow(x[i],2);
-        }
-        var = var / x.length;
-        var -= Math.pow(mean(x), 2);
-        return var;
+    public static void setArrayThreshold(double[] arrayThreshold) {
+        Deteccion2.arrayThreshold = arrayThreshold;
     }
 
-    static double sd (double[] x) {
-        return Math.sqrt(var(x));
+    public static int[] getArrayLambda() {
+        return arrayLambda;
     }
 
-    // Regresion lineal Y = b0 + b1 * X
-    static List<Double> regLineal(double[] y, double[] x){
-        double b1 = cov(y,x)/var(x);
-        double b0 = mean(y) - b1 * mean(x);
-        List<Double> res = new ArrayList<>();
-        res.add(b0);
-        res.add(b1);
-        return res;
+    public static void setArrayLambda(int[] arrayLambda) {
+        Deteccion2.arrayLambda = arrayLambda;
     }
 
-    // DETECTAMOS DONDE SE PRODUCE EL CAMBIO
+    public static int getLon() {
+        return lon;
+    }
+
+    public static void setLon(int lon) {
+        Deteccion2.lon = lon;
+    }
+
+    public static int getLon2() {
+        return lon2;
+    }
+
+    public static void setLon2(int lon2) {
+        Deteccion2.lon2 = lon2;
+    }
+
+    public static int getExp() {
+        return exp;
+    }
+
+    public static void setExp(int exp) {
+        Deteccion2.exp = exp;
+    }
+
+    public static int getNven() {
+        return nven;
+    }
+
+    public static void setNven(int nven) {
+        Deteccion2.nven = nven;
+    }
+
+    // Fin getters and setters
+
+
+    /**
+     * Detecta donde se produce el cambio
+     * @param data
+     * @param l1
+     * @param l2
+     * @return mypos
+     */
     static double myPos(double data, double l1, double l2){
         return (l1 - l2 + Math.log(l2 / l1)*data);
     }
-
 
     static double v3(double[] data){
         double[] x = new double[data.length];
         for (int i=0; i<data.length; i++){
             x[i] = i+1;
         }
-        List<Double> regresion = regLineal(data, x);
+        List<Double> regresion = FuncionesAuxiliares.regLineal(data, x);
         return (regresion.get(1)*data.length);
     }
 
@@ -105,14 +116,24 @@ public class Deteccion2 {
         for (int i=0; i<data.length; i++){
             x[i] = i+1;
         }
-        List<Double> regresion = regLineal(data, x);
+        List<Double> regresion = FuncionesAuxiliares.regLineal(data, x);
         return regresion.get(1);
     }
 
 
-    //CALCULA EL PUNTO DONDE SE PRODUCE EL CAMBIO
+    /**
+     * Calcula el punto donde se produce el cambio
+     * @param lon
+     * @param lon2
+     * @param l0
+     * @param b0
+     * @param velocidad
+     * @param data
+     * @return S
+     */
     static double[] calculaPuntoCambio(int lon, int lon2, double l0, double b0, double velocidad, double[] data){
-        int last = lon + lon2;
+//        int first = 1; TODO preguntar qué es este first y si debe o no ser 1
+//        int last = lon + lon2;
         int lont = last - first;
         double[] S = new double[lont];
         for (int i = 1 + first; i<last; i++){
@@ -131,12 +152,15 @@ public class Deteccion2 {
         return S;
     }
 
-    static void detectaCambio() {
-        // Atributos
+    /**
+     * Detecta cuando se ha producido un cambio en la tendencia
+     * y calcula en punto en el que se ha producido dicho cambio
+     */
+    static void realizaExperimentos() {
 
         for (int n = 0; n < arrayLambda.length; n++) {
-            threshold = arrayThreshold[n];
-            l0 = arrayLambda[n]; // Lambda inicial
+            threshold = arrayThreshold[n]; // Establece el umbral
+            l0 = arrayLambda[n]; // Establece la lambda inicial
 
 //            for (int threshold : arrayThreshold)
             for (double b1 : arrayVel) {
@@ -162,6 +186,7 @@ public class Deteccion2 {
                     alarmi = lon + lon2;
 //                    #       alarmi <- -1
 
+                    // TODO PREGUNTAR  b0 no se inicializa por lo que siempre es 0 ¿creamos un bucle que inicialice la b0 y los experimentos se realicen de b0 a b1?
                     for (int i = 0; i < lon; i++) {
                         l = l0 + i*b0;
                         data[i] = poisson.nextPoisson(l);
@@ -186,7 +211,7 @@ public class Deteccion2 {
                     for (int i = 1; i < (lon + lon2); i++) {
                         double lbefore = l0 + i * b0; // Lambda si no hay cambio
                         double lafter = lbefore + l0 / 2; //Un poco despues de lbefore. Lo que suma deb ser constante
-                        if (poissonFunction(data[i], lbefore) != 0) {
+                        if (FuncionesAuxiliares.poissonFunction(data[i], lbefore) != 0) {
                             // s <- log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
                             double s = myPos(data[i], lbefore, lafter);
                             // p[i] <- p[i-1] + log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
@@ -255,7 +280,7 @@ public class Deteccion2 {
                             }
                             d[i] = minindex;
                         }
-                        List<Double> regresion = regLineal(d, x);
+                        List<Double> regresion = FuncionesAuxiliares.regLineal(d, x);
                         //Fin de la regresion
 
                         velocidades[j] = (lfin - lv) / nven / regresion.get(1); //Tamaño una ventana / y de la regresion
@@ -307,7 +332,7 @@ public class Deteccion2 {
                                 }
                                 d[i] = minindex;
                             }
-                            regresion = regLineal(d, x);
+                            regresion = FuncionesAuxiliares.regLineal(d, x);
                             // Fin de la regresion
                             velocidades[j] = (lfin - lv) / nven / regresion.get(1); //Tamaño una ventana / y de la regresion
                         }
@@ -351,20 +376,16 @@ public class Deteccion2 {
                 }
 
                 output = "" + threshold + " " + l0 + " " + b0 + " " + b1 + " " + (lv + b1 * lon2) + " " + lfin + " " + vel3
-                        + " " + mean(velocidades) + " " + mean(velocidades2) + " " + sd(velocidades) + " " + mean(arlMayoresCero) + " " + sd(arlMayoresCero)
-                        + " " + mean(time) + " " + sd(time) + " " + mean(time2) + " " + sd(time2)
-                        + " " + mean(timeTeorica) + " " + sd(timeTeorica)
-                        + " " + mean(timeDatos) + " " + sd(timeDatos)
+                        + " " + FuncionesAuxiliares.mean(velocidades) + " " + FuncionesAuxiliares.mean(velocidades2) + " " + FuncionesAuxiliares.sd(velocidades) + " " + FuncionesAuxiliares.mean(arlMayoresCero) + " " + FuncionesAuxiliares.sd(arlMayoresCero)
+                        + " " + FuncionesAuxiliares.mean(time) + " " + FuncionesAuxiliares.sd(time) + " " + FuncionesAuxiliares.mean(time2) + " " + FuncionesAuxiliares.sd(time2)
+                        + " " + FuncionesAuxiliares.mean(timeTeorica) + " " + FuncionesAuxiliares.sd(timeTeorica)
+                        + " " + FuncionesAuxiliares.mean(timeDatos) + " " + FuncionesAuxiliares.sd(timeDatos)
                         + " " + errorVelocidad + " " + errorArl;
 
                 System.out.println(output);
             }
         }
 
-    }
-
-    public static void main(String[] args){
-        detectaCambio();
     }
 /*
       write.table(output, file="resultados-5-7-250.csv", row.names=FALSE, append=TRUE, sep="&", col.names=F)
