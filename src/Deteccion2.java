@@ -23,7 +23,6 @@ public class Deteccion2 {
     private static int j, alarmi, first, last;
     private static Poisson poisson = new Poisson();
     private static boolean alarma;
-    private static String cc;
 
     // Factorial
     static double Factorial(double n) {
@@ -87,29 +86,9 @@ public class Deteccion2 {
 
     // DETECTAMOS DONDE SE PRODUCE EL CAMBIO
     static double myPos(double data, double l1, double l2){
-        //if ( l1 == 0 && l2 == 0 )
-        //    return (0);
-        //if ( l1 == 0 || l2 == 0 ) {
-        //    return (Math.log(poissonFunction(data, l2) / poissonFunction(data, l1)));
-        //} else
         return (l1 - l2 + Math.log(l2 / l1)*data);
     }
 
-    static double velocidad(int[] data){
-        int tam = data.length -1;
-        double[] resta = new double[tam];
-        for (int i=0; i<tam; i++)
-            resta[i] = data[i+1] - data[i];
-        return (mean(resta));
-    }
-
-    static double v2(int[] data){
-        double sum = 0;
-        for (int i = 0; i < data.length; i++){
-            sum += data[i];
-        }
-        return (sum/data.length);
-    }
 
     static double v3(double[] data){
         double[] x = new double[data.length];
@@ -133,76 +112,6 @@ public class Deteccion2 {
         return ((l2-l1-l0*Math.log(l2 / l1))/(k*Math.log(l2 / l1)));
     }
 
-    static double v2d(double[] data, double l0, double lk0, double lk){
-        double[] mm = new double[lon];
-        mm[1] = 0;
-        for(int i = 1; i<lon; i++) {
-            mm[i] = mm[i-1] + myPos(data[i], lk0, lk);
-        }
-        double auxmin = Double.POSITIVE_INFINITY;
-        double minindex = 0;
-        for (int j = 0; j<lon; j++){
-            if ( auxmin > mm[j] ){
-                auxmin = mm[j];
-                minindex = j;
-            }
-        }
-        return (estimacionVelocidad(l0, lk0, lk, minindex));
-    }
-
-
-    // CALCULA LA VELOCIDAD PARA UN INTERVALO DE DATOS
-    // init: indice del primer dato
-    // lon: longitud de los datos
-    // nven: numero de ventanas
-    static List<Double> calculaVelocidad(int init, int lon, int nven, int[] data){
-        // Calculo una velocidad aproximada a partir de los datos
-        double[] data2 = new double[lon];
-        double[] aux = new double[lon];
-        for (int i=0; i<lon; i++){
-            data2[i] = data[i+init];
-            aux[i] = i+1;
-        }
-        List<Double> regresion = regLineal(data2, aux);
-        double lv = regresion.get(0);
-        double lfin = lv + regresion.get(1)*lon;
-        double[][] mp = new double[nven][lon];
-        for(int k = 0; k<nven; k++) {
-            double lk = lv + (lfin-lv)/nven;
-            mp[k][0] = myPos(data[0], lv, lk);
-        }
-        for(int i=1; i<lon; i++) {
-            for(int k=0; k<nven; k++) {
-                double lk = lv + (k+1) * (lfin-lv)/nven;
-                double lk0 = lv + k * (lfin-lv)/nven;
-                mp[k][i] = mp[k][i-1] + myPos(data[i], lk0, lk);
-            }
-        }
-
-        //Regresion de los datos
-        double[] d = new double[nven];
-        double[] x = new double[nven];
-        for (int i = 0; i<nven;i++){
-            x[i] = i+1;
-            double auxmin = Double.POSITIVE_INFINITY;
-            double minindex = 0;
-            for (int j = 0; j<lon; j++){
-                if ( auxmin > mp[i][j] ){
-                    auxmin = mp[i][j];
-                    minindex = j;
-                }
-            }
-            d[i] = minindex;
-        }
-        List<Double> regresionVelocidad = regLineal(d, x);
-        // Fin de la regresion
-        double velocidad = (lfin-lv)/(nven*regresionVelocidad.get(1)); //Tamanyo una ventana / y de la regresion
-
-        List<Double> result = new ArrayList<>();
-        result.add(velocidad);
-        result.add(lv);
-        return(result);
-    }
 
     //CALCULA EL PUNTO DONDE SE PRODUCE EL CAMBIO
     static double[] calculaPuntoCambio(int lon, int lon2, double l0, double b0, double velocidad, double[] data){
@@ -287,11 +196,10 @@ public class Deteccion2 {
                     v = new double[lon+lon2];
 
                     p[0] = 0; //TODO ¿¿p[0] y g[0] o p[1] y g[1]??
-                    v[0] = 0;
+//                    v[0] = 0;
                     g[0] = 0;
                     alarma = false;
 
-                    cc = "a";
 
                     // Detecta que ha ocurrido un cambio
                     for (int i = 1; i < (lon + lon2); i++) {
@@ -314,7 +222,7 @@ public class Deteccion2 {
                             }
                         }
                     }
-                    // cc = 'b'
+
                     if (alarmi > lon) {
                         // DESPUES ESTIMO LA VELOCIDAD DESPUES DEL CAMBIO
                         // lv <- l0 + b0*1000
@@ -369,6 +277,7 @@ public class Deteccion2 {
                         }
                         List<Double> regresion = regLineal(d, x);
                         //Fin de la regresion
+
                         velocidades[j] = (lfin - lv) / nven / regresion.get(1); //Tamaño una ventana / y de la regresion
                         velocidades2[j] = velocidades[j];
 
@@ -429,23 +338,6 @@ public class Deteccion2 {
                         // FINALMENTE CALCULO EL PUNTO DE CAMBIO
                         // Esta condición es para eliminar velocidades erroneas
                         if (velocidades[j] > 0 && Math.abs(velocidades[j] - b1) < b1) {
-                            //             first <- 1
-                            //             last <- lon + lon2
-                            //             lont <- last - first
-                            //             S <- vector(length=lont)
-                            //             G <- vector(length=lont)
-                            //             for(i in 2+first:last-1) {
-                            //               i1 <- i+1
-                            //               S[i-first] <- 0
-                            //               for(k in i1:last) {
-                            //                 lfirst <- l0 + b0*k
-                            //                 if(velocidades[j]<0) print("fallo")
-                            //                 lsecond <- l0 + b0*i + velocidades[j]*(k-i)
-                            //                 s <- mypos(data[k], lfirst, lsecond)
-                            //                 S[i-first] <- S[i-first] + s
-                            //               }
-                            //             }
-                            //             time[j] <- which.max(S) + first
                             double[] SS = calculaPuntoCambio(lon, lon2, l0, b0, velocidades[j], data);
                             double auxmax = 0;
                             int maxindex = 0;
@@ -468,15 +360,8 @@ public class Deteccion2 {
                         errorArl = errorArl + 1;
                     }
                 }
+
                 String output;
-
-                /**
-                 #     output <- c("\n", b1, "___", mean(arl[arl>0]), "___", mean(time[time>0]), "___", sd(time[time>0]), "\n")
-                 #     output <- toString(c(b1, mean(arl[arl>0]), mean(time[time>0]), sd(time[time>0])))
-                 #     output <- c(threshold, l0, b1, mean(velocidades), sd(velocidades), mean(arl[arl>0]), mean(time[time>0]), sd(time[time>0]))
-                 #     output <- sprintf("%f %f %f %f %f %f %f %f %f %f %f %f", threshold, l0, b0,  b1, lv + b1 * lon2, lfin, vel3, mean(velocidades), sd(velocidades), mean(arl[arl>0]), sd(arl[arl>0]), mean(time[time>100]), sd(time[time>100]))
-                 */
-
 
                 List arlMC = new ArrayList<Double>();
                 for (double v1 : arl) {
