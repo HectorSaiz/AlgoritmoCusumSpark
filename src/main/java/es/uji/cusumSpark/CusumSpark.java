@@ -10,7 +10,7 @@ public class CusumSpark {
 
 
     // TODO preguntar ¿dejamos estos atributos y que las funciones los puedan utilizar libremente o mejor los hacemos locales y que las funciones se los pasen entre sí?
-    private static double[] arrayVel = new double[] {0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1, 1.5, 2, 2.5, 3}; // Array de velocidades de las rectas, es decir de las pendientes
+    private static double[] arrayVel = new double[] {0, 0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1, 1.5, 2, 2.5, 3}; // Array de velocidades de las rectas, es decir de las pendientes
     private static double[] arrayThreshold = new double[] {7, 9.8, 14.4};  // Array con los posibles valores umbral para los experimentos
     private static int[] arrayLambda = new int[] {5, 10, 20};  // Array con las posibles lambdas a tomar en los experimentos
 
@@ -173,96 +173,101 @@ public class CusumSpark {
             threshold = arrayThreshold[n]; // Establece el umbral
             l0 = arrayLambda[n]; // Establece la lambda inicial
 
-//            for (int threshold : arrayThreshold)
-            for (double b1 : arrayVel) {
+            // Este vector se encarga de proporcionar velocidades a b0 y variar la pendiente de la recta inicial
+            for (int indexb0 = 0; indexb0 < arrayVel.length - 1; indexb0++) {
+                b0 = arrayVel[indexb0];
+                for (int indexb1 = indexb0 + 1; indexb1 < arrayVel.length; indexb1++) {
+//            for (double b1 : arrayVel) {
 
-                e = new double[exp];
-                arl = new double[exp];
+                    b1 = arrayVel[indexb1];
+                    e = new double[exp];
+                    arl = new double[exp];
 
-                data = new double[lon+lon2];
+                    data = new double[lon + lon2];
 
-                mp = new double [nven][lon2];
-                velocidades = new double[exp];
-                velocidades2 = new double[exp];
+                    mp = new double[nven][lon2];
+                    velocidades = new double[exp];
+                    velocidades2 = new double[exp];
 
-                time = new double[exp];
-                time2 = new double[exp];
-                timeTeorica = new double[exp];
-                timeDatos = new double[exp];
+                    time = new double[exp];
+                    time2 = new double[exp];
+                    timeTeorica = new double[exp];
+                    timeDatos = new double[exp];
 
 
-                j = 0;
-                while (j < exp){
+                    j = 0;
+                    while (j < exp) {
 //                    System.out.println("Experimento: " + j);
-                    alarmi = lon + lon2;
+                        alarmi = lon + lon2;
 //                    #       alarmi <- -1
 
 //                    FIXME Realizar las calculos para los diferentes valores de b0
-                    for (int i = 0; i < lon; i++) {
-                        l = l0 + i*b0;
-                        data[i] = poisson.nextPoisson(l);
-                    }
+                        for (int i = 0; i < lon; i++) {
+                            l = l0 + i * b0;
+                            data[i] = poisson.nextPoisson(l);
+                        }
 
-                    first = lon;
-                    last = lon + lon2;
-                    for (int i = first; i < last; i++) {
-                        l = l0 + b0*lon + b1*(i-lon);
-                        data[i] = poisson.nextPoisson(l);
-                    }
+                        first = lon;
+                        last = lon + lon2;
+                        for (int i = first; i < last; i++) {
+                            l = l0 + b0 * lon + b1 * (i - lon);
+                            data[i] = poisson.nextPoisson(l);
+                        }
 
-                    p = new double[lon+lon2];
-                    g = new double[lon+lon2];
+                        p = new double[lon + lon2];
+                        g = new double[lon + lon2];
 
-                    p[0] = 0;
-                    g[0] = 0;
-                    alarma = false;
+                        p[0] = 0;
+                        g[0] = 0;
+                        alarma = false;
 
 //                    Se comprueba si ha habido algún cambio en la tendencia.
-                    detectaCambio();
+                        detectaCambio();
 
 
-                    if (alarmi > lon) {
-                        // Primera estimacion de la velocidad
-                        lv = l0 + b0 * lon;
-                        datav3 = new double[lon2];
-                        for (int i = 0; i < lon2; i++) {
-                            datav3[i] = data[i + lon];
-                        }
-                        vel3 = vv3(datav3);
-                        lfin = lv + v3(datav3);
-                        List<Double> regresion = calculaVelocidad(lv, lfin);
-                        velocidades[j] = (lfin - lv) / nven / regresion.get(1); //Tamaño una ventana / y de la regresion
-                        velocidades2[j] = velocidades[j];
-                        // Fin del cálculo con la velocidad estimada a partir de los datos
-
-                        // Doy una nueva pasada con la velocidad calculada
-                        if (velocidades[j] > 0 && Math.abs(velocidades[j] - b1) < b1) {
+                        if (alarmi > lon) {
+                            // Primera estimacion de la velocidad
                             lv = l0 + b0 * lon;
-                            lfin = lv + velocidades[j] * lon2;
-                            regresion = calculaVelocidad(lv, lfin);
+                            datav3 = new double[lon2];
+                            for (int i = 0; i < lon2; i++) {
+                                datav3[i] = data[i + lon];
+                            }
+                            vel3 = vv3(datav3);
+                            lfin = lv + v3(datav3);
+                            List<Double> regresion = calculaVelocidad(lv, lfin);
                             velocidades[j] = (lfin - lv) / nven / regresion.get(1); //Tamaño una ventana / y de la regresion
-                        }
-                        // Fin de la segunda pasada
+                            velocidades2[j] = velocidades[j];
+                            // Fin del cálculo con la velocidad estimada a partir de los datos
 
-                        // FINALMENTE CALCULO EL PUNTO DE CAMBIO
-                        // Esta condición es para eliminar velocidades erroneas
-                        if (velocidades[j] > 0 && Math.abs(velocidades[j] - b1) < b1) {
-                            time[j] = calculaPuntoCambio(lon, lon2, l0, b0, velocidades[j], data);
+                            // Doy una nueva pasada con la velocidad calculada
+                            if (velocidades[j] > 0 && Math.abs(velocidades[j] - b1) < b1) {
+                                lv = l0 + b0 * lon;
+                                lfin = lv + velocidades[j] * lon2;
+                                regresion = calculaVelocidad(lv, lfin);
+                                velocidades[j] = (lfin - lv) / nven / regresion.get(1); //Tamaño una ventana / y de la regresion
+                            }
+                            // Fin de la segunda pasada
+
+                            // FINALMENTE CALCULO EL PUNTO DE CAMBIO
+                            // Esta condición es para eliminar velocidades erroneas
+                            if (velocidades[j] > 0 && Math.abs(velocidades[j] - b1) < b1) {
+                                time[j] = calculaPuntoCambio(lon, lon2, l0, b0, velocidades[j], data);
 
 //                            time[j] = maxindex;
-                            // time[j] <- calculaPuntoCambio(lon, lon2, l0, b0, velocidades[j], data)
-                            j = j + 1;
+                                // time[j] <- calculaPuntoCambio(lon, lon2, l0, b0, velocidades[j], data)
+                                j = j + 1;
+                            } else {
+                                velocidades[j] = -2;
+                                errorVelocidad = errorVelocidad + 1;
+                            }
                         } else {
-                            velocidades[j] = -2;
-                            errorVelocidad = errorVelocidad + 1;
+                            time[j] = -1;
+                            velocidades[j] = -1;
+                            errorArl = errorArl + 1;
                         }
-                    } else {
-                        time[j] = -1;
-                        velocidades[j] = -1;
-                        errorArl = errorArl + 1;
                     }
+                    muestraResultadosExperimentos(b1);
                 }
-                muestraResultadosExperimentos(b1);
             }
         }
     }

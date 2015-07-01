@@ -6,14 +6,14 @@ public class Main {
 
         long time_start, time_end;
 
-        System.out.println("Inicia tarea principal");
+        System.out.println("Inicia tarea principal\n");
 
         time_start = System.currentTimeMillis();
-        System.out.println("Arrancan los experimentos");
+        System.out.println("Arrancan los experimentos\n");
         CusumSpark.realizaExperimentos(); // llamamos a la tarea
         time_end = System.currentTimeMillis();
 
-        System.out.println("Tiempo empleado " + (time_end - time_start) / 1000 + " segundos || " + (time_end - time_start) / 1000 / 60 + " minutos" );
+        System.out.println("\nTiempo empleado " + (time_end - time_start) / 1000 + " segundos -> " + (time_end - time_start) / 1000 / 60 + " minutos" );
 
 
 
