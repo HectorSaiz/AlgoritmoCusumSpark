@@ -213,111 +213,24 @@ public class CusumSpark {
 
 
                     if (alarmi > lon) {
-                        // Si se cumple ha habido un cambio
-                        // Se estima la velocidad después de cambio
-                        // lv <- l0 + b0*1000
+                        // Primera estimacion de la velocidad
                         lv = l0 + b0 * lon;
-                        // La siguiente línea es buena idea para datos de twitter
-                        //       lfin <- lv + v2d(data[lon+1:lon2], l0, lv, lv+b1*lon2)*lon2
-                        //       lfin <- lv + b0*lon2
-                        //                 lfin <- lv + b1 * lon2
-                        //           vel3 <- 0
                         double[] datav3 = new double[lon2];
                         for (int i = 0; i < lon2; i++) {
                             datav3[i] = data[i + lon];
                         }
                         vel3 = vv3(datav3);
                         lfin = lv + v3(datav3);
-                        //       lfin <- lv + v2(data[(lon+1):(lon+lon2)])*lon2
-                        //       print(v2(data[(lon+1):(lon+lon2]))
-                        //       lfin <- 3*lv
-                        //       vv <- velocidad(data[lon:(lon+lon2)])
-                        //       vv <- velocidad(data[lon:alarmi])
-                        //       lfin <- lv + vv * lon2
-                        //         lfin <- data[lon+lon2] # Si tomo el último dato es bastante aceptable
-                        //         lfin <- data[alarmi]
-                        for (int k = 0; k < nven; k++) {
-                            double lk = lv + (lfin - lv) / nven;
-                            mp[k][0] = myPos(data[lon], lv, lk);
-                        }
-                        for (int i = 1; i < lon2; i++) {
-                            for (int k = 0; k < nven; k++) {
-                                double lk = lv + k * (lfin - lv) / nven;
-                                double lk0 = lv + (k - 1) * (lfin - lv) / nven;
-                                //           mp[k,i] <- mp[k,i-1] + log(dpois(data[i+lon], lk)/dpois(data[i+lon], lk0))
-                                mp[k][i] = mp[k][i - 1] + myPos(data[i + lon], lk0, lk);
-                            }
-                        }
-
-                        // Regresion de los datos
-                        double[] d = new double[nven];
-                        double[] x = new double[nven];
-                        for (int i = 0; i < nven; i++) {
-                            x[i] = i + 1;
-                            double auxmin = Double.POSITIVE_INFINITY;
-                            double minindex = 0;
-                            for (int j = 0; j < lon2; j++) {
-                                if (auxmin > mp[i][j]) {
-                                    auxmin = mp[i][j];
-                                    minindex = j;
-                                }
-                            }
-                            d[i] = minindex;
-                        }
-                        List<Double> regresion = FuncionesAuxiliares.regLineal(d, x);
-                        //Fin de la regresion
-
+                        List<Double> regresion = calculaVelocidad(lv, lfin);
                         velocidades[j] = (lfin - lv) / nven / regresion.get(1); //Tamaño una ventana / y de la regresion
                         velocidades2[j] = velocidades[j];
-
-                        //if(velocidades2[j]>0 && abs(velocidades2[j] - b1) < b1) {
-                        //  time2[j] <- calculaPuntoCambio(lon, lon2, l0, b0, velocidades2[j], data)
-                        //}
-
-                        // Calculo el punto de cambio con la velocidad teórica
-                        //timeTeorica[j] <- calculaPuntoCambio(lon, lon2, l0, b0, b1, data)
-                        // Fin del cálculo con la velocidad teórica
-
-                        // Calculo el punto de cambio con la velocidad estimada a partir de los datos
-                        //if(vel3>0 && abs(vel3 - b1) < b1) {
-                        //  timeDatos[j] <- calculaPuntoCambio(lon, lon2, l0, b0, vel3, data)
-                        //}
                         // Fin del cálculo con la velocidad estimada a partir de los datos
 
-                        //           Doy una nueva pasada con la velocidad calculada
+                        // Doy una nueva pasada con la velocidad calculada
                         if (velocidades[j] > 0 && Math.abs(velocidades[j] - b1) < b1) {
                             lv = l0 + b0 * lon;
-
                             lfin = lv + velocidades[j] * lon2;
-
-                            for (int k = 0; k < nven; k++) {
-                                double lk = lv + (lfin - lv) / nven;
-                                mp[k][0] = myPos(data[lon], lv, lk);
-                            }
-                            for (int i = 1; i < lon2; i++) {
-                                for (int k = 0; k < nven; k++) {
-                                    double lk = lv + (k + 1) * (lfin - lv) / nven;
-                                    double lk0 = lv + k * (lfin - lv) / nven;
-                                    mp[k][i] = mp[k][i - 1] + myPos(data[i + lon], lk0, lk);
-                                }
-                            }
-                            // Regresion de los datos
-                            d = new double[nven];
-                            x = new double[nven];
-                            for (int i = 0; i < nven; i++) {
-                                x[i] = i + 1;
-                                double auxmin = Double.POSITIVE_INFINITY;
-                                double minindex = 0;
-                                for (int j = 0; j < lon2; j++) {
-                                    if (auxmin > mp[i][j]) {
-                                        auxmin = mp[i][j];
-                                        minindex = j;
-                                    }
-                                }
-                                d[i] = minindex;
-                            }
-                            regresion = FuncionesAuxiliares.regLineal(d, x);
-                            // Fin de la regresion
+                            regresion = calculaVelocidad(lv, lfin);
                             velocidades[j] = (lfin - lv) / nven / regresion.get(1); //Tamaño una ventana / y de la regresion
                         }
                         // Fin de la segunda pasada
@@ -373,6 +286,36 @@ public class CusumSpark {
                 + " " + errorVelocidad + " " + errorArl;
 
         System.out.println(output);
+    }
+
+    private static List<Double> calculaVelocidad(double lv, double lfin){
+        for (int k = 0; k < nven; k++) {
+            double lk = lv + (lfin - lv) / nven;
+            mp[k][0] = myPos(data[lon], lv, lk);
+        }
+        for (int i = 1; i < lon2; i++) {
+            for (int k = 0; k < nven; k++) {
+                double lk = lv + k * (lfin - lv) / nven;
+                double lk0 = lv + (k - 1) * (lfin - lv) / nven;
+                mp[k][i] = mp[k][i - 1] + myPos(data[i + lon], lk0, lk);
+            }
+        }
+        // Regresion de los datos
+        double[] d = new double[nven];
+        double[] x = new double[nven];
+        for (int i = 0; i < nven; i++) {
+            x[i] = i + 1;
+            double auxmin = Double.POSITIVE_INFINITY;
+            double minindex = 0;
+            for (int j = 0; j < lon2; j++) {
+                if (auxmin > mp[i][j]) {
+                    auxmin = mp[i][j];
+                    minindex = j;
+                }
+            }
+            d[i] = minindex;
+        }
+        return FuncionesAuxiliares.regLineal(d, x);
     }
 
     private static void detectaCambio() {
