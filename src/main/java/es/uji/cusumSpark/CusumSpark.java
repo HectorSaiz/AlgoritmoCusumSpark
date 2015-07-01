@@ -133,8 +133,8 @@ public class CusumSpark {
      * @param data
      * @return S
      */
-    static double[] calculaPuntoCambio(int lon, int lon2, double l0, double b0, double velocidad, double[] data){
-        int first = 0; //TODO preguntar qué es este first y si debe o no ser 1
+    static int calculaPuntoCambio(int lon, int lon2, double l0, double b0, double velocidad, double[] data){
+        int first = 0;
         int last = lon + lon2 - 1;
         int lont = last - first;
         double[] S = new double[lont];
@@ -151,7 +151,15 @@ public class CusumSpark {
                 S[i-first] = S[i-first] + s;
             }
         }
-        return S;
+        double auxmax = 0;
+        int maxindex = 0;
+        for (int i=0; i<S.length; i++){
+            if ( auxmax < S[i]){
+                auxmax = S[i];
+                maxindex = i;
+            }
+        }
+        return maxindex;
     }
 
     /**
@@ -188,7 +196,7 @@ public class CusumSpark {
                     alarmi = lon + lon2;
 //                    #       alarmi <- -1
 
-//                    TODO PREGUNTAR  b0 no se inicializa por lo que siempre es 0 ¿creamos un bucle que inicialice la b0 y los experimentos se realicen de b0 a b1?
+//                    FIXME Realizar las calculos para los diferentes valores de b0
                     for (int i = 0; i < lon; i++) {
                         l = l0 + i*b0;
                         data[i] = poisson.nextPoisson(l);
@@ -238,17 +246,9 @@ public class CusumSpark {
                         // FINALMENTE CALCULO EL PUNTO DE CAMBIO
                         // Esta condición es para eliminar velocidades erroneas
                         if (velocidades[j] > 0 && Math.abs(velocidades[j] - b1) < b1) {
-                            double[] SS = calculaPuntoCambio(lon, lon2, l0, b0, velocidades[j], data);
-                            double auxmax = 0;
-                            int maxindex = 0;
-                            for (int i=0; i<SS.length; i++){
-                                if ( auxmax < SS[i]){
-                                    auxmax = SS[i];
-                                    maxindex = i;
-                                }
-                            }
-                            time[j] = maxindex;
-                            // TODO ¿incorporar la busqueda del índice en la función calculaPuntoCambio()?
+                            time[j] = calculaPuntoCambio(lon, lon2, l0, b0, velocidades[j], data);
+
+//                            time[j] = maxindex;
                             // time[j] <- calculaPuntoCambio(lon, lon2, l0, b0, velocidades[j], data)
                             j = j + 1;
                         } else {
