@@ -283,7 +283,8 @@ public class CusumSpark {
                 + " " + FuncionesAuxiliares.mean(time) + " " + FuncionesAuxiliares.sdError(time) + " " + FuncionesAuxiliares.mean(time2) + " " + FuncionesAuxiliares.sdError(time2)
                 + " " + FuncionesAuxiliares.mean(timeTeorica) + " " + FuncionesAuxiliares.sdError(timeTeorica)
                 + " " + FuncionesAuxiliares.mean(timeDatos) + " " + FuncionesAuxiliares.sdError(timeDatos)
-                + " " + errorVelocidad + " " + errorArl;
+                + " " + errorVelocidad + " " + errorArl
+                + " " + alarmi;
 
         System.out.println(output);
     }
