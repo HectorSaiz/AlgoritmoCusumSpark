@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * Created by root on 6/24/15.
  */
-public class Deteccion2 {
+public class CusumSpark {
 
 
     // TODO preguntar ¿dejamos estos atributos y que las funciones los puedan utilizar libremente o mejor los hacemos locales y que las funciones se los pasen entre sí?
@@ -28,7 +28,7 @@ public class Deteccion2 {
     private static Poisson poisson = new Poisson(); // Clase encargada de proporcionar números aleatoriamente siguiento una distribución de Poisson
     private static boolean alarma;
 
-    public Deteccion2() {
+    public CusumSpark() {
         super();
     }
 
@@ -39,7 +39,7 @@ public class Deteccion2 {
     }
 
     public static void setArrayVel(double[] arrayVel) {
-        Deteccion2.arrayVel = arrayVel;
+        CusumSpark.arrayVel = arrayVel;
     }
 
     public static double[] getArrayThreshold() {
@@ -47,7 +47,7 @@ public class Deteccion2 {
     }
 
     public static void setArrayThreshold(double[] arrayThreshold) {
-        Deteccion2.arrayThreshold = arrayThreshold;
+        CusumSpark.arrayThreshold = arrayThreshold;
     }
 
     public static int[] getArrayLambda() {
@@ -55,7 +55,7 @@ public class Deteccion2 {
     }
 
     public static void setArrayLambda(int[] arrayLambda) {
-        Deteccion2.arrayLambda = arrayLambda;
+        CusumSpark.arrayLambda = arrayLambda;
     }
 
     public static int getLon() {
@@ -63,7 +63,7 @@ public class Deteccion2 {
     }
 
     public static void setLon(int lon) {
-        Deteccion2.lon = lon;
+        CusumSpark.lon = lon;
     }
 
     public static int getLon2() {
@@ -71,7 +71,7 @@ public class Deteccion2 {
     }
 
     public static void setLon2(int lon2) {
-        Deteccion2.lon2 = lon2;
+        CusumSpark.lon2 = lon2;
     }
 
     public static int getExp() {
@@ -79,7 +79,7 @@ public class Deteccion2 {
     }
 
     public static void setExp(int exp) {
-        Deteccion2.exp = exp;
+        CusumSpark.exp = exp;
     }
 
     public static int getNven() {
@@ -87,7 +87,7 @@ public class Deteccion2 {
     }
 
     public static void setNven(int nven) {
-        Deteccion2.nven = nven;
+        CusumSpark.nven = nven;
     }
 
     // Fin getters and setters
