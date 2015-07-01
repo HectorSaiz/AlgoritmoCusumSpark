@@ -295,8 +295,8 @@ public class CusumSpark {
         }
         for (int i = 1; i < lon2; i++) {
             for (int k = 0; k < nven; k++) {
-                double lk = lv + k * (lfin - lv) / nven;
-                double lk0 = lv + (k - 1) * (lfin - lv) / nven;
+                double lk = lv + (k+1) * (lfin - lv) / nven;
+                double lk0 = lv + k * (lfin - lv) / nven;
                 mp[k][i] = mp[k][i - 1] + myPos(data[i + lon], lk0, lk);
             }
         }
