@@ -134,20 +134,19 @@ public class CusumSpark {
      * @return S
      */
     static int calculaPuntoCambio(int lon, int lon2, double l0, double b0, double velocidad, double[] data){
-        int first = 0;
-        int last = lon + lon2 - 1;
-        int lont = last - first;
+        int first = 0, last = lon + lon2 - 1, lont = last - first, i1;
         double[] S = new double[lont];
-        for (int i = 2 + first; i <= last-1; i++){ // FIXME Modificado
-            int i1 = i+1;
+        double lfirst, lsecond, s;
+        for (int i = 2 + first; i <= last-1; i++) { // FIXME Modificado
+            i1 = i+1;
             S[i-first] = 0;
             for (int k = i1; k <= last; k++){
-                double lfirst = l0 + b0*k;
+                lfirst = l0 + b0*k;
                 if (velocidad<0){
                     System.out.println("fallo");
                 }
-                double lsecond = l0 +b0*i + velocidad*(k-i);
-                double s = myPos(data[k], lfirst, lsecond);
+                lsecond = l0 +b0*i + velocidad*(k-i);
+                s = myPos(data[k], lfirst, lsecond);
                 S[i-first] = S[i-first] + s;
             }
         }
@@ -167,6 +166,8 @@ public class CusumSpark {
      * y calcula en punto en el que se ha producido dicho cambio
      */
     public static void realizaExperimentos() {
+
+        double [] datav3;
 
         for (int n = 0; n < arrayLambda.length; n++) {
             threshold = arrayThreshold[n]; // Establece el umbral
@@ -223,7 +224,7 @@ public class CusumSpark {
                     if (alarmi > lon) {
                         // Primera estimacion de la velocidad
                         lv = l0 + b0 * lon;
-                        double[] datav3 = new double[lon2];
+                        datav3 = new double[lon2];
                         for (int i = 0; i < lon2; i++) {
                             datav3[i] = data[i + lon];
                         }
@@ -290,24 +291,26 @@ public class CusumSpark {
     }
 
     private static List<Double> calculaVelocidad(double lv, double lfin){
+        double lk, lk0;
+
         for (int k = 0; k < nven; k++) {
-            double lk = lv + (lfin - lv) / nven;
+            lk = lv + (lfin - lv) / nven;
             mp[k][0] = myPos(data[lon], lv, lk);
         }
         for (int i = 1; i < lon2; i++) {
             for (int k = 0; k < nven; k++) {
-                double lk = lv + (k+1) * (lfin - lv) / nven;
-                double lk0 = lv + k * (lfin - lv) / nven;
+                lk = lv + (k+1) * (lfin - lv) / nven;
+                lk0 = lv + k * (lfin - lv) / nven;
                 mp[k][i] = mp[k][i - 1] + myPos(data[i + lon], lk0, lk);
             }
         }
         // Regresion de los datos
-        double[] d = new double[nven];
-        double[] x = new double[nven];
+        double[] d = new double[nven],x = new double[nven];
+        double auxmin, minindex;
         for (int i = 0; i < nven; i++) {
             x[i] = i + 1;
-            double auxmin = Double.POSITIVE_INFINITY;
-            double minindex = 0;
+            auxmin = Double.POSITIVE_INFINITY;
+            minindex = 0;
             for (int j = 0; j < lon2; j++) {
                 if (auxmin > mp[i][j]) {
                     auxmin = mp[i][j];
@@ -321,12 +324,14 @@ public class CusumSpark {
 
     private static void detectaCambio() {
         // Detecta que ha ocurrido un cambio
+        double lbefore, lafter, s;
+
         for (int i = 1; i < (lon + lon2); i++) {
-            double lbefore = l0 + i * b0; // Lambda si no hay cambio
-            double lafter = lbefore + l0 / 2; //Un poco despues de lbefore. Lo que suma deb ser constante
+            lbefore = l0 + i * b0; // Lambda si no hay cambio
+            lafter = lbefore + l0 / 2; //Un poco despues de lbefore. Lo que suma deb ser constante
             if (FuncionesAuxiliares.poissonFunction(data[i], lbefore) != 0) {
                 // s <- log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
-                double s = myPos(data[i], lbefore, lafter);
+                s = myPos(data[i], lbefore, lafter);
                 // p[i] <- p[i-1] + log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
                 p[i] = p[i - 1] + s;
                 if ((g[i - 1] + s) < 0) {

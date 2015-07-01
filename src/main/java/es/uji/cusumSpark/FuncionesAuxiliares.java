@@ -36,7 +36,7 @@ public class FuncionesAuxiliares {
         return cov;
     }
 
-    // Varianza
+    // Varianza   TODO COMPROBAR FORMULA
     static double var(double[] x){
         double var = 0;
         for (int i = 0; i < x.length; i++){
