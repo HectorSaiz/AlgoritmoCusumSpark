@@ -51,6 +51,10 @@ public class FuncionesAuxiliares {
         return Math.sqrt(var(x));
     }
 
+    static double sdError(double[] x) {
+        return sd(x)/Math.sqrt(x.length);
+    }
+
     // Regresion lineal Y = b0 + b1 * X
     static List<Double> regLineal(double[] y, double[] x){
         double b1 = cov(y,x)/var(x);

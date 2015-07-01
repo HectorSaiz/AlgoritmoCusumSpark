@@ -8,6 +8,8 @@ import java.util.List;
  */
 public class Deteccion2 {
 
+
+    // TODO preguntar ¿dejamos estos atributos y que las funciones los puedan utilizar libremente o mejor los hacemos locales y que las funciones se los pasen entre sí?
     private static double[] arrayVel = new double[] {0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1, 1.5, 2, 2.5, 3}; // Array de velocidades de las rectas, es decir de las pendientes
     private static double[] arrayThreshold = new double[] {7, 9.8, 14.4};  // Array con los posibles valores umbral para los experimentos
     private static int[] arrayLambda = new int[] {5, 10, 20};  // Array con las posibles lambdas a tomar en los experimentos
@@ -132,15 +134,15 @@ public class Deteccion2 {
      * @return S
      */
     static double[] calculaPuntoCambio(int lon, int lon2, double l0, double b0, double velocidad, double[] data){
-//        int first = 1; TODO preguntar qué es este first y si debe o no ser 1
-//        int last = lon + lon2;
+        int first = 0; //TODO preguntar qué es este first y si debe o no ser 1
+        int last = lon + lon2 - 1;
         int lont = last - first;
         double[] S = new double[lont];
-        for (int i = 1 + first; i<last; i++){
+        for (int i = 2 + first; i <= last-1; i++){ // FIXME Modificado
             int i1 = i+1;
             S[i-first] = 0;
-            for (int k = i1; k<last; k++){
-                double lfirst = l0 +b0*(k+1);
+            for (int k = i1; k <= last; k++){
+                double lfirst = l0 + b0*k;
                 if (velocidad<0){
                     System.out.println("fallo");
                 }
@@ -156,7 +158,7 @@ public class Deteccion2 {
      * Detecta cuando se ha producido un cambio en la tendencia
      * y calcula en punto en el que se ha producido dicho cambio
      */
-    static void realizaExperimentos() {
+    public static void realizaExperimentos() {
 
         for (int n = 0; n < arrayLambda.length; n++) {
             threshold = arrayThreshold[n]; // Establece el umbral
@@ -182,11 +184,11 @@ public class Deteccion2 {
 
                 j = 0;
                 while (j < exp){
-                    //System.out.println("Experimento: " + j);
+//                    System.out.println("Experimento: " + j);
                     alarmi = lon + lon2;
 //                    #       alarmi <- -1
 
-                    // TODO PREGUNTAR  b0 no se inicializa por lo que siempre es 0 ¿creamos un bucle que inicialice la b0 y los experimentos se realicen de b0 a b1?
+//                    TODO PREGUNTAR  b0 no se inicializa por lo que siempre es 0 ¿creamos un bucle que inicialice la b0 y los experimentos se realicen de b0 a b1?
                     for (int i = 0; i < lon; i++) {
                         l = l0 + i*b0;
                         data[i] = poisson.nextPoisson(l);
@@ -206,31 +208,13 @@ public class Deteccion2 {
                     g[0] = 0;
                     alarma = false;
 
+//                    Se comprueba si ha habido algún cambio en la tendencia.
+                    detectaCambio();
 
-                    // Detecta que ha ocurrido un cambio
-                    for (int i = 1; i < (lon + lon2); i++) {
-                        double lbefore = l0 + i * b0; // Lambda si no hay cambio
-                        double lafter = lbefore + l0 / 2; //Un poco despues de lbefore. Lo que suma deb ser constante
-                        if (FuncionesAuxiliares.poissonFunction(data[i], lbefore) != 0) {
-                            // s <- log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
-                            double s = myPos(data[i], lbefore, lafter);
-                            // p[i] <- p[i-1] + log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
-                            p[i] = p[i - 1] + s;
-                            if ((g[i - 1] + s) < 0) {
-                                g[i] = 0;
-                            } else {
-                                g[i] = g[i - 1] + s;
-                            }
-                            if (g[i] > threshold & !alarma) {
-                                alarmi = i;
-                                alarma = true;
-                                arl[j] = alarmi - lon;
-                            }
-                        }
-                    }
 
                     if (alarmi > lon) {
-                        // DESPUES ESTIMO LA VELOCIDAD DESPUES DEL CAMBIO
+                        // Si se cumple ha habido un cambio
+                        // Se estima la velocidad después de cambio
                         // lv <- l0 + b0*1000
                         lv = l0 + b0 * lon;
                         // La siguiente línea es buena idea para datos de twitter
@@ -350,7 +334,8 @@ public class Deteccion2 {
                                     maxindex = i;
                                 }
                             }
-                            time[j] = maxindex + first -1;
+                            time[j] = maxindex;
+                            // TODO ¿incorporar la busqueda del índice en la función calculaPuntoCambio()?
                             // time[j] <- calculaPuntoCambio(lon, lon2, l0, b0, velocidades[j], data)
                             j = j + 1;
                         } else {
@@ -363,29 +348,55 @@ public class Deteccion2 {
                         errorArl = errorArl + 1;
                     }
                 }
-
-                String output;
-
-                List arlMC = new ArrayList<Double>();
-                for (double v1 : arl) {
-                    if (v1 > 0) arlMC.add(v1);
-                }
-                double[] arlMayoresCero = new double[arlMC.size()];
-                for (int i =0; i < arlMC.size(); i++){
-                    arlMayoresCero[i] = (double) arlMC.get(i);
-                }
-
-                output = "" + threshold + " " + l0 + " " + b0 + " " + b1 + " " + (lv + b1 * lon2) + " " + lfin + " " + vel3
-                        + " " + FuncionesAuxiliares.mean(velocidades) + " " + FuncionesAuxiliares.mean(velocidades2) + " " + FuncionesAuxiliares.sd(velocidades) + " " + FuncionesAuxiliares.mean(arlMayoresCero) + " " + FuncionesAuxiliares.sd(arlMayoresCero)
-                        + " " + FuncionesAuxiliares.mean(time) + " " + FuncionesAuxiliares.sd(time) + " " + FuncionesAuxiliares.mean(time2) + " " + FuncionesAuxiliares.sd(time2)
-                        + " " + FuncionesAuxiliares.mean(timeTeorica) + " " + FuncionesAuxiliares.sd(timeTeorica)
-                        + " " + FuncionesAuxiliares.mean(timeDatos) + " " + FuncionesAuxiliares.sd(timeDatos)
-                        + " " + errorVelocidad + " " + errorArl;
-
-                System.out.println(output);
+                muestraResultadosExperimentos(b1);
             }
         }
+    }
 
+    private static void muestraResultadosExperimentos(double b1) {
+        String output;
+
+        List arlMC = new ArrayList<Double>();
+        for (double v1 : arl) {
+            if (v1 > 0) arlMC.add(v1);
+        }
+        double[] arlMayoresCero = new double[arlMC.size()];
+        for (int i =0; i < arlMC.size(); i++){
+            arlMayoresCero[i] = (double) arlMC.get(i);
+        }
+
+        output = "" + threshold + " " + l0 + " " + b0 + " " + b1 + " " + (lv + b1 * lon2) + " " + lfin + " " + vel3
+                + " " + FuncionesAuxiliares.mean(velocidades) + " " + FuncionesAuxiliares.mean(velocidades2) + " " + FuncionesAuxiliares.sd(velocidades) + " " + FuncionesAuxiliares.mean(arlMayoresCero) + " " + FuncionesAuxiliares.sd(arlMayoresCero)
+                + " " + FuncionesAuxiliares.mean(time) + " " + FuncionesAuxiliares.sdError(time) + " " + FuncionesAuxiliares.mean(time2) + " " + FuncionesAuxiliares.sdError(time2)
+                + " " + FuncionesAuxiliares.mean(timeTeorica) + " " + FuncionesAuxiliares.sdError(timeTeorica)
+                + " " + FuncionesAuxiliares.mean(timeDatos) + " " + FuncionesAuxiliares.sdError(timeDatos)
+                + " " + errorVelocidad + " " + errorArl;
+
+        System.out.println(output);
+    }
+
+    private static void detectaCambio() {
+        // Detecta que ha ocurrido un cambio
+        for (int i = 1; i < (lon + lon2); i++) {
+            double lbefore = l0 + i * b0; // Lambda si no hay cambio
+            double lafter = lbefore + l0 / 2; //Un poco despues de lbefore. Lo que suma deb ser constante
+            if (FuncionesAuxiliares.poissonFunction(data[i], lbefore) != 0) {
+                // s <- log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
+                double s = myPos(data[i], lbefore, lafter);
+                // p[i] <- p[i-1] + log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
+                p[i] = p[i - 1] + s;
+                if ((g[i - 1] + s) < 0) {
+                    g[i] = 0;
+                } else {
+                    g[i] = g[i - 1] + s;
+                }
+                if (g[i] > threshold & !alarma) {
+                    alarmi = i;
+                    alarma = true;
+                    arl[j] = alarmi - lon;
+                }
+            }
+        }
     }
 /*
       write.table(output, file="resultados-5-7-250.csv", row.names=FALSE, append=TRUE, sep="&", col.names=F)
