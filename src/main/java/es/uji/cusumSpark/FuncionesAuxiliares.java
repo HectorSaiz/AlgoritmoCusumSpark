@@ -13,7 +13,7 @@ public class FuncionesAuxiliares {
         for (int i = 0; i < x.length; i++){
             sum += x[i];
         }
-        double mean = sum / x.length;
+        double mean = sum / (x.length-1);
         return mean;
     }
 
@@ -28,10 +28,10 @@ public class FuncionesAuxiliares {
     // Covarianza (x e y tienen la misma length)
     static double cov(double[] y, double[] x){
         double cov = 0;
-        for (int i = 0; i < x.length; i++){
+        for (int i = 1; i < x.length; i++){
             cov += x[i]*y[i];
         }
-        cov = cov / x.length;
+        cov = cov / (x.length-1);
         cov -= mean(x)* mean(y);
         return cov;
     }
@@ -39,10 +39,10 @@ public class FuncionesAuxiliares {
     // Varianza   TODO COMPROBAR FORMULA
     static double var(double[] x){
         double var = 0;
-        for (int i = 0; i < x.length; i++){
+        for (int i = 1; i < x.length; i++){
             var += Math.pow(x[i],2);
         }
-        var = var / x.length;
+        var = var / (x.length-1);
         var -= Math.pow(mean(x), 2);
         return var;
     }
@@ -52,7 +52,7 @@ public class FuncionesAuxiliares {
     }
 
     static double sdError(double[] x) {
-        return sd(x)/Math.sqrt(x.length);
+        return sd(x)/Math.sqrt(x.length-1);
     }
 
     // Regresion lineal Y = b0 + b1 * X
