@@ -160,9 +160,9 @@ public class CusumSpark {
                 S[i-first] = S[i-first] + s;
             }
         }
-        double auxmax = 0;
+        double auxmax = Double.NEGATIVE_INFINITY;
         int maxindex = 1;
-        for (int i=1; i<S.length; i++){
+        for (int i=1; i<S.length-1; i++){
             if ( auxmax < S[i]){
                 auxmax = S[i];
                 maxindex = i;
@@ -258,7 +258,7 @@ public class CusumSpark {
 
 //                    Se comprueba si ha habido algún cambio en la tendencia.
                         detectaCambio();
-                        System.out.println("Cambio detectado en :" + alarmi + "  "+j); // 38 y 83
+                        System.out.println("Cambio detectado en :" + alarmi); // 38 y 83
 
                         if (alarmi > lon) {
                             // Primera estimacion de la velocidad
@@ -292,7 +292,6 @@ public class CusumSpark {
                                 // time[j] <- calculaPuntoCambio(lon, lon2, l0, b0, velocidades[j], data)
                                 j = j + 1;
                             } else {
-                                j++;
                                 velocidades[j] = -2;
                                 errorVelocidad = errorVelocidad + 1;
                             }
