@@ -18,6 +18,12 @@ public class Main {
 
         System.out.println("\nTiempo empleado " + (time_end - time_start) / 1000 + " segundos -> " + (time_end - time_start) / 1000 / 60 + " minutos" );
         Poisson poisson = new Poisson();
+
+
+
+
+
+
         /* Generar archivos con datos de Pois
         for (int k = 1; k <= 100; k++) {
             double[] data = new double[150];

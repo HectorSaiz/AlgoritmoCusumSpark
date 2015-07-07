@@ -19,7 +19,8 @@ public class CusumSpark {
 
     // TODO preguntar ¿dejamos estos atributos y que las funciones los puedan utilizar libremente o mejor los hacemos locales y que las funciones se los pasen entre sí?
 
-    private static double[] arrayVel = new double[] {-1.0, 0.0, 0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1, 1.5, 2, 2.5, 3}; // Array de velocidades de las rectas, es decir de las pendientes
+    private static double[] arrayVelA = new double[] {-1.0, 0.0, 0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1, 1.5, 2, 2.5, 3}; // Array de velocidades de las rectas, es decir de las pendientes
+    private static double[] arrayVel = new double[] {-1.0, 3, 2.5, 2, 1.5, 1, 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.05, 0.0}; // Array de velocidades de las rectas, es decir de las pendientes
     private static double[] arrayThreshold = new double[] {-1.0, 7, 9.8, 14.4};  // Array con los posibles valores umbral para los experimentos
     private static int[] arrayLambda = new int[] {-1, 5, 10, 20};  // Array con las posibles lambdas a tomar en los experimentos
 
@@ -32,7 +33,7 @@ public class CusumSpark {
 
     private static double threshold, l0, l, b0, b1, lv, lfin, vel3;
     private static double[][] mp;
-    private static double[] data, e, arl, velocidades, velocidades2, time, time2, timeTeorica, timeDatos, p, g;
+    private static double[] data, e, arl, velocidades, velocidades2, time, time2, timeTeorica, timeDatos, pa, ga, pb, gb;
     private static int j, alarmi, first, last;
     private static Poisson poisson = new Poisson(); // Clase encargada de proporcionar números aleatoriamente siguiento una distribución de Poisson
     private static boolean alarma;
@@ -208,7 +209,6 @@ public class CusumSpark {
                     j = 1;
 
                     while (j <= exp) {
-                        int z = 1;
 //                    System.out.println("Experimento: " + j);
                         alarmi = lon + lon2;
 //                    #       alarmi <- -1
@@ -251,11 +251,17 @@ public class CusumSpark {
                         }*/
 
 
-                        p = new double[lon + lon2+1];
-                        g = new double[lon + lon2+1];
+                        pa = new double[lon + lon2+1];
+                        ga = new double[lon + lon2+1];
+                        pb = new double[lon + lon2+1];
+                        gb = new double[lon + lon2+1];
 
-                        p[1] = 0;
-                        g[1] = 0;
+
+                        pa[1] = 0; // p after
+                        ga[1] = 0; // g after
+                        pb[1] = 0; // p before
+                        gb[1] = 0; // g before
+
                         alarma = false;
 
 //                    Se comprueba si ha habido algún cambio en la tendencia.
@@ -363,24 +369,46 @@ public class CusumSpark {
 
     private static void detectaCambio() {
         // Detecta que ha ocurrido un cambio
+        double lbefore, la, lb, s;
         for (int i = 2; i <= (lon + lon2); i++) { // FIXME debería empezar EN 2 ó en 1
-            double lbefore = l0 + i * b0; // Lambda si no hay cambio
-            double lafter = lbefore + l0 / 2; //Un poco despues de lbefore. Lo que suma deb ser constante
-            if (FuncionesAuxiliares.poissonFunction(data[i], lbefore) != 0) {
+            lbefore = l0 + i * b0; // Lambda si no hay cambio FIXME en R se comprueba que lbefore > 0
+            if ( lbefore < 0 ) lbefore = 0.0;
+            la = lbefore + l0 / 2; //Un poco despues de lbefore. Lo que suma debe ser constante
+            if (FuncionesAuxiliares.poissonFunction(data[i], lbefore) != 0) { //FIXME esto no está en R
                 // s <- log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
-                double s = myPos(data[i], lbefore, lafter);
+                s = myPos(data[i], lbefore, la);
                 // p[i] <- p[i-1] + log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
-                p[i] = p[i - 1] + s;
-                if ((g[i - 1] + s) < 0) {
-                    g[i] = 0;
+                pa[i] = pa[i - 1] + s;
+                if ((ga[i - 1] + s) < 0) {
+                    ga[i] = 0;
                 } else {
-                    g[i] = g[i - 1] + s;
+                    ga[i] = ga[i - 1] + s;
                 }
-                if (g[i] > threshold & !alarma) {
+                if (ga[i] > threshold & !alarma) {
                     alarmi = i;
                     alarma = true;
                     arl[j] = alarmi - lon;
+                    break;
                 }
+            }
+
+            // FIXME NUEVO
+            lb = lbefore - l0 / 2;
+            if (FuncionesAuxiliares.poissonFunction(data[i], lbefore) != 0) { //FIXME esto no está en R
+                s = myPos(data[i], lbefore, lb);
+                pb[i] = pb[i-1] + s;
+                if((gb[i-1] + s) < 0){
+                    gb[i] = 0;
+                } else {
+                    gb[i] = gb[i-1] + s;
+                }
+                if (gb[i] > threshold) {
+                    alarmi = i;
+                    alarma = true;
+                    arl[j] = alarmi - lon;
+                    break;
+                }
+
             }
         }
     }
