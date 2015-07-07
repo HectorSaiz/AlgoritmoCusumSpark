@@ -19,13 +19,13 @@ public class CusumSpark {
 
     // TODO preguntar ¿dejamos estos atributos y que las funciones los puedan utilizar libremente o mejor los hacemos locales y que las funciones se los pasen entre sí?
 
-    private static double[] arrayVel = new double[] {-1.0, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1, 1.5, 2, 2.5, 3}; // Array de velocidades de las rectas, es decir de las pendientes
+    private static double[] arrayVel = new double[] {-1.0, 0.0, 0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1, 1.5, 2, 2.5, 3}; // Array de velocidades de las rectas, es decir de las pendientes
     private static double[] arrayThreshold = new double[] {-1.0, 7, 9.8, 14.4};  // Array con los posibles valores umbral para los experimentos
     private static int[] arrayLambda = new int[] {-1, 5, 10, 20};  // Array con las posibles lambdas a tomar en los experimentos
 
     private static int lon = 100;  // Cantidad de números antes de introducir en cambio
     private static int lon2 = 50;  // Cantidad de números después de introducir el cambio
-    private static int exp = 99;  // Cantidad de experimentos a realizar
+    private static int exp = 10000;  // Cantidad de experimentos a realizar
     private static int nven = 15;  // Cantidad de ventanas a utilizar
     private static int errorVelocidad = 0;
     private static int errorArl = 0;
@@ -162,7 +162,8 @@ public class CusumSpark {
         }
         double auxmax = Double.NEGATIVE_INFINITY;
         int maxindex = 1;
-        for (int i=1; i<S.length-1; i++){
+        for (int i=1; i< S.length-1; i++){
+            //System.out.println("S"+i+" "+S[i]);
             if ( auxmax < S[i]){
                 auxmax = S[i];
                 maxindex = i;
@@ -177,15 +178,15 @@ public class CusumSpark {
      */
     public static void realizaExperimentos() {
 
-        for (int n = 1; n < 2; n++) {
+        for (int n = 1; n < arrayLambda.length; n++) {
             threshold = arrayThreshold[n]; // Establece el umbral
             l0 = arrayLambda[n]; // Establece la lambda inicial
 
-            for (int indexb0 = 1; indexb0 < 2; indexb0++) {
+            for (int indexb0 = 1; indexb0 < arrayVel.length-1; indexb0++) {
                 b0 = arrayVel[indexb0];
 
 //            for (int threshold : arrayThreshold)
-                for (int indexb1 = indexb0 + 1; indexb1 < 3; indexb1++) {
+                for (int indexb1 = indexb0 + 1; indexb1 < arrayVel.length; indexb1++) {
 
                     b1 = arrayVel[indexb1];
                     e = new double[exp+1];
@@ -213,7 +214,7 @@ public class CusumSpark {
 //                    #       alarmi <- -1
 
 //                    FIXME Realizar las calculos para los diferentes valores de b0
-                        /*
+
                         for (int i = 1; i <= lon; i++) {
                             l = l0 + i * b0;
                             data[i] = poisson.nextPoisson(l);
@@ -224,8 +225,9 @@ public class CusumSpark {
                         for (int i = first; i <= last; i++) {
                             l = l0 + b0 * lon + b1 * (i - lon);
                             data[i] = poisson.nextPoisson(l);
-                        }*/
-                        BufferedReader br = null;
+                        }
+
+                        /*BufferedReader br = null;
 
                         try {
 
@@ -246,7 +248,7 @@ public class CusumSpark {
                             } catch (IOException ex) {
                                 ex.printStackTrace();
                             }
-                        }
+                        }*/
 
 
                         p = new double[lon + lon2+1];
@@ -258,7 +260,7 @@ public class CusumSpark {
 
 //                    Se comprueba si ha habido algún cambio en la tendencia.
                         detectaCambio();
-                        System.out.println("Cambio detectado en :" + alarmi); // 38 y 83
+                        //System.out.println("Cambio detectado en :" + alarmi); // 38 y 83
 
                         if (alarmi > lon) {
                             // Primera estimacion de la velocidad
@@ -287,7 +289,7 @@ public class CusumSpark {
                             // Esta condición es para eliminar velocidades erroneas
                             if (velocidades[j] > 0 && Math.abs(velocidades[j] - b1) < b1) {
                                 time[j] = calculaPuntoCambio(lon, lon2, l0, b0, velocidades[j], data);
-                                System.out.println("Punto de cambio: "+ time[j]);
+                                //System.out.println("Punto de cambio: "+ time[j]);
 //                            time[j] = maxindex;
                                 // time[j] <- calculaPuntoCambio(lon, lon2, l0, b0, velocidades[j], data)
                                 j = j + 1;

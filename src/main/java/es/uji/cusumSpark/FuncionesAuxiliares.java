@@ -10,7 +10,7 @@ public class FuncionesAuxiliares {
     // Media
     static double mean(double[] x){
         double sum = 0;
-        for (int i = 0; i < x.length; i++){
+        for (int i = 1; i < x.length; i++){
             sum += x[i];
         }
         double mean = sum / (x.length-1);
