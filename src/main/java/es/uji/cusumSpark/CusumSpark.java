@@ -1,5 +1,7 @@
 package es.uji.cusumSpark;
 
+import org.apache.commons.math3.random.RandomDataGenerator;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -35,7 +37,6 @@ public class CusumSpark {
     private static double[][] mp;
     private static double[] data, e, arl, velocidades, velocidades2, time, time2, timeTeorica, timeDatos, pa, ga, pb, gb;
     private static int j, alarmi, first, last;
-    private static Poisson poisson = new Poisson(); // Clase encargada de proporcionar números aleatoriamente siguiento una distribución de Poisson
     private static boolean alarma;
 
     public CusumSpark() {
@@ -218,16 +219,18 @@ public class CusumSpark {
 
 //                    FIXME Realizar las calculos para los diferentes valores de b0
 
+                        RandomDataGenerator rdg = new RandomDataGenerator();
+
                         for (int i = 1; i <= lon; i++) {
                             l = l0 + i * b0;
-                            data[i] = poisson.nextPoisson(l);
+                            data[i] = rdg.nextPoisson(l);
                         }
 
                         first = lon+1;
                         last = lon + lon2;
                         for (int i = first; i <= last; i++) {
                             l = l0 + b0 * lon + b1 * (i - lon);
-                            data[i] = poisson.nextPoisson(l);
+                            data[i] = rdg.nextPoisson(l);
                         }
 
                         /*BufferedReader br = null;
