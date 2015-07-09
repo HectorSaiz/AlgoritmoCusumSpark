@@ -31,7 +31,7 @@ public class CusumSpark {
     private static int errorVelocidad = 0;
     private static int errorArl = 0;
 
-    private static double threshold, l0, l, b0, b1, lv, lfin, vel3;
+    private static double threshold, l0, l, lb, b0, b1, lv, lfin, vel3;
     private static double[][] mp;
     private static double[] data, e, arl, velocidades, velocidades2, time, time2, timeTeorica, timeDatos, pa, ga, pb, gb;
     private static int j, alarmi, first, last;
@@ -120,7 +120,7 @@ public class CusumSpark {
             x[i] = i;
         }
         List<Double> regresion = FuncionesAuxiliares.regLineal(data, x);
-        return (regresion.get(1)*(data.length-1));
+        return (regresion.get(1));//*(data.length-1));
     }
 
     static double vv3(double[] data){
@@ -148,16 +148,19 @@ public class CusumSpark {
         int last = lon + lon2;
         int lont = last - first;
         double[] S = new double[lont+1];
+
+        int i1;
+        double lfirst, lsecond, s;
         for (int i = 1 + first; i <= last-1; i++){ // FIXME Modificado
-            int i1 = i+1;
+            i1 = i+1;
             S[i-first] = 0;
             for (int k = i1; k <= last; k++){
-                double lfirst = l0 + b0*k;
+                lfirst = l0 + b0*k;
                 if (velocidad<0){
                     System.out.println("fallo");
                 }
-                double lsecond = l0 +b0*i + velocidad*(k-i);
-                double s = myPos(data[k], lfirst, lsecond);
+                lsecond = l0 +b0*i + velocidad*(k-i);
+                s = myPos(data[k], lfirst, lsecond);
                 S[i-first] = S[i-first] + s;
             }
         }
@@ -266,28 +269,32 @@ public class CusumSpark {
 
 //                    Se comprueba si ha habido algún cambio en la tendencia.
                         detectaCambio();
-                        //System.out.println("Cambio detectado en :" + alarmi); // 38 y 83
 
                         if (alarmi > lon) {
                             // Primera estimacion de la velocidad
-                            lv = l0 + b0 * lon;
+                            lv = l0 + b0 * lon; // FIXME preguntar
                             double[] datav3 = new double[lon2+1];
                             for (int i = 1; i <= lon2; i++) {
                                 datav3[i] = data[lon + i];
                             }
-                            vel3 = vv3(datav3);
-                            lfin = lv + v3(datav3);
+                            vel3 = v3(datav3);
+                            lfin = lv + vel3*datav3.length; // FIXME preguntar
                             List<Double> regresion = calculaVelocidad(lv, lfin);
                             velocidades[j] = (lfin - lv) / nven / regresion.get(1); //Tamaño una ventana / y de la regresion
                             velocidades2[j] = velocidades[j];
                             // Fin del cálculo con la velocidad estimada a partir de los datos
 
                             // Doy una nueva pasada con la velocidad calculada
-                            if (velocidades[j] > 0 && Math.abs(velocidades[j] - b1) < b1) {
+                            if (velocidades[j] > 0 && Math.abs(velocidades[j] - b1) < b1) { // FIXME ¿qué hace esta comprobación?
                                 lv = l0 + b0 * lon;
                                 lfin = lv + velocidades[j] * lon2;
                                 regresion = calculaVelocidad(lv, lfin);
                                 velocidades[j] = (lfin - lv) / nven / regresion.get(1); //Tamaño una ventana / y de la regresion
+                            } else {
+//                                System.out.println(regresion.get(1));
+//                                System.out.println("Velocidad erronea");
+//                                System.out.println(velocidades[j] + ", " + b1 + ", " + vel3);
+
                             }
                             // Fin de la segunda pasada
 
@@ -300,6 +307,7 @@ public class CusumSpark {
                                 // time[j] <- calculaPuntoCambio(lon, lon2, l0, b0, velocidades[j], data)
                                 j = j + 1;
                             } else {
+//                                System.out.println("lv: " + lv + " lfin: " + lfin + " velocidades[j]: " + velocidades[j] + " regresión(1): " + regresion.get(1));
                                 velocidades[j] = -2;
                                 errorVelocidad = errorVelocidad + 1;
                             }
@@ -338,24 +346,28 @@ public class CusumSpark {
     }
 
     private static List<Double> calculaVelocidad(double lv, double lfin){
+
+        double lk, lk0;
         for (int k = 1; k <= nven; k++) {
-            double lk = lv + (lfin - lv) / nven;
-            mp[k][1] = myPos(data[lon+1], lv, lk);
+            lk = lv + (lfin - lv) / nven;
+            mp[k][1] = myPos(data[lon + 1], lv, lk);
         }
+
         for (int i = 2; i <= lon2; i++) {
             for (int k = 1; k <= nven; k++) {
-                double lk = lv + k * (lfin - lv) / nven; //k+1
-                double lk0 = lv + (k - 1) * (lfin - lv) / nven; //k
+                lk = lv + k * (lfin - lv) / nven; //k+1
+                lk0 = lv + (k - 1) * (lfin - lv) / nven; //k
                 mp[k][i] = mp[k][i - 1] + myPos(data[i + lon], lk0, lk);
             }
         }
-        // Regresion de los datos
-        double[] d = new double[nven+1];
-        double[] x = new double[nven+1];
+
+        // Regresión de los datos
+        double[] d = new double[nven + 1], x = new double[nven + 1];
+        double auxmin, minindex;
         for (int i = 1; i <= nven; i++) {
             x[i] = i;
-            double auxmin = Double.POSITIVE_INFINITY;
-            double minindex = 1;
+            auxmin = Double.POSITIVE_INFINITY;
+            minindex = 1;
             for (int j = 1; j <= lon2; j++) {
                 if (auxmin > mp[i][j]) {
                     auxmin = mp[i][j];
@@ -369,7 +381,7 @@ public class CusumSpark {
 
     private static void detectaCambio() {
         // Detecta que ha ocurrido un cambio
-        double lbefore, la, lb, s;
+        double lbefore, la, s;
         for (int i = 2; i <= (lon + lon2); i++) { // FIXME debería empezar EN 2 ó en 1
             lbefore = l0 + i * b0; // Lambda si no hay cambio FIXME en R se comprueba que lbefore > 0
             if ( lbefore < 0 ) lbefore = 0.0;
