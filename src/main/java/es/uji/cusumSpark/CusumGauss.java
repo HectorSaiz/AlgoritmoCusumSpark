@@ -284,7 +284,7 @@ public class CusumGauss {
 
         Map<String, Object> res = new HashMap<>();
 
-        if (beta2Estimada < 0 /*|| Double.isInfinite(beta2Estimada) || Double.isNaN(beta2Estimada)*/) {
+        if (beta2Estimada < 0 /* || Double.isInfinite(beta2Estimada) || Double.isNaN(beta2Estimada)*/) {
             res.put("puntoCambio", 0);
             res.put("betaEstimada", -1d);
             res.put("alarmi", 0);

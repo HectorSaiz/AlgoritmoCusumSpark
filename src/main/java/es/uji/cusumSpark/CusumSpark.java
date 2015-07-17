@@ -143,44 +143,48 @@ public class CusumSpark {
         double[] gb = new double[lont+1];
 
 
-        pa[1] = 0; // p after
-        ga[1] = 0; // g after
-        pb[1] = 0; // p before
-        gb[1] = 0; // g before
+        pa[1] = 0d; // p after
+        ga[1] = 0d; // g after
+        pb[1] = 0d; // p before
+        gb[1] = 0d; // g before
         boolean alarma = false;
         int alarmi = lont;
         for (int i = 2; i <= lont; i++) { // FIXME debería empezar EN 2 ó en 1
             lbefore = l0 + i * b0; // Lambda si no hay cambio FIXME en R se comprueba que lbefore > 0
             if ( lbefore < 0 ) lbefore = 0.0;
-            la = lbefore + l0 / 2; //Un poco despues de lbefore. Lo que suma debe ser constante
+            la = lbefore + l0 / 2.0; //Un poco despues de lbefore. Lo que suma debe ser constante
             if (FuncionesAuxiliares.poissonFunction(data[i], lbefore) != 0) { //FIXME esto no está en R
                 // s <- log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
                 s = myPos(data[i], lbefore, la);
                 // p[i] <- p[i-1] + log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
                 pa[i] = pa[i - 1] + s;
                 if ((ga[i - 1] + s) < 0) {
-                    ga[i] = 0;
+                    ga[i] = 0d;
                 } else {
                     ga[i] = ga[i - 1] + s;
                 }
                 // FIXME NUEVO
-                lb = lbefore - l0 / 2;
+                lb = lbefore - l0 / 2.0;
                 if (lb < 0) {
-                    lb = 0;
+                    lb = 0d;
                 }
-                s = myPos(data[i], lbefore, lb);
-                pb[i] = pb[i - 1] + s;
-                if ((gb[i - 1] + s) < 0) {
-                    gb[i] = 0;
-                } else {
-                    gb[i] = gb[i - 1] + s;
-                }
-//                System.out.println(alarma);
-                if ((ga[i] > threshold || gb[i] > threshold) && !alarma) {
+                if (ga[i] > threshold) {
                     alarmi = i;
-                    alarma = true;
                     break;
+                } else {
+                    s = myPos(data[i], lbefore, lb);
+                    pb[i] = pb[i - 1] + s;
+                    if ((gb[i - 1] + s) < 0) {
+                        gb[i] = 0d;
+                    } else {
+                        gb[i] = gb[i - 1] + s;
+                    }
+                    if (gb[i] > threshold) {
+                        alarmi = i;
+                        break;
+                    }
                 }
+
             }
         }
         return alarmi;
@@ -235,7 +239,7 @@ public class CusumSpark {
         double[] S = new double[lont+1];
         for (int i = 1 + first; i <= last-1; i++){ // FIXME Modificado
             int i1 = i+1;
-            S[i-first] = 0;
+            S[i-first] = 0d;
             for (int k = i1; k <= last; k++){
                 double lfirst = l0 + b0*k;
                 //if (velocidad<0){
@@ -243,7 +247,7 @@ public class CusumSpark {
                 //}
                 double lsecond = l0 +b0*i + velocidad*(k-i);
                 if (lsecond < 0){
-                    lsecond = 0;
+                    lsecond = 0d;
                 }
                 double s = myPos(data[k], lfirst, lsecond);
                 S[i-first] = S[i-first] + s;
@@ -325,7 +329,7 @@ public class CusumSpark {
             // Fin del cálculo con la velocidad estimada a partir de los datos
 
             // Doy una nueva pasada con la velocidad calculada
-            if ( velocidad > 0 && Math.abs(velocidad-b1) < b1){
+            if ( velocidad > 0 && Math.abs(velocidad - b1) < b1 ){
                 lv = l0 + b0 * lon;
                 lfin = lv + velocidad * lon2;
                 regresion = calculaVelocidad(lv, lon, lfin, lon2, nven, data);
@@ -334,7 +338,8 @@ public class CusumSpark {
             // Fin de la segunda pasada
 
             // FINALMENTE CALCULO EL PUNTO DE CAMBIO
-            if ( velocidad > 0 && Math.abs(velocidad-b1) < b1 ){
+            if ( velocidad > 0 && Math.abs(velocidad - b1) < b1 ){
+                System.out.println(Math.abs(velocidad - b1));
                 double puntoCambio = calculaPuntoCambio(lon, lon2, l0, b0, velocidad, data);
 //                if ( inverse ){
 //                    time[j] += (lon2-lon);

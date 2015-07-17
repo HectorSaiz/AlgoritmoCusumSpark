@@ -3,6 +3,9 @@ package es.uji.cusumSpark;
 
 import org.apache.commons.math3.distribution.PoissonDistribution;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Main2 {
 
     public static void main(String[] args) {
@@ -32,8 +35,16 @@ public class Main2 {
 
         System.arraycopy(arrayA, 0, arrayB, 0, 4);
 //        System.arrayCopy(aOrigen,inicioArrayOrigen,aDestino, inicioArrayDestino,numeroElementosACopiar);
-        System.out.println(arrayA[4]);
-        System.out.println(arrayB[4]);
+//        System.out.println(arrayA[4]);
+//        System.out.println(arrayB[4]);
+
+        List<Integer> l = new ArrayList<>();
+        l.add(0, 0);l.add(1, 5); l.add(2, 8);
+        for (int i = 1; i < l.size(); i++) {
+            System.out.println(l.get(i));
+        }
+
+        System.out.println(l.size());
 
 
     }
