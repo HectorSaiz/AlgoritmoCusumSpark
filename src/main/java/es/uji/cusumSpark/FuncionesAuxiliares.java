@@ -17,6 +17,15 @@ public class FuncionesAuxiliares {
         return mean;
     }
 
+    static double mean(List<Double> x){
+        double sum = 0;
+        for (double num : x){
+            sum += num;
+        }
+        double mean = sum / (x.size());
+        return mean;
+    }
+
     // Factorial
     static double Factorial(double n) {
         if (n == 0)
@@ -36,6 +45,16 @@ public class FuncionesAuxiliares {
         return cov;
     }
 
+    static double cov(List<Double> y, List<Double> x){
+        double cov = 0;
+        for (int i = 0; i < x.size(); i++){
+            cov += x.get(i)*y.get(i);
+        }
+        cov = cov / (x.size());
+        cov -= mean(x)* mean(y);
+        return cov;
+    }
+
     // Varianza   TODO COMPROBAR FORMULA
     static double var(double[] x){
         double var = 0;
@@ -43,6 +62,16 @@ public class FuncionesAuxiliares {
             var += Math.pow(x[i],2);
         }
         var = var / (x.length-1);
+        var -= Math.pow(mean(x), 2);
+        return var;
+    }
+
+    static double var(List<Double> x){
+        double var = 0;
+        for (double num: x){
+            var += Math.pow(num,2);
+        }
+        var = var / (x.size());
         var -= Math.pow(mean(x), 2);
         return var;
     }
@@ -68,5 +97,13 @@ public class FuncionesAuxiliares {
     // f(x) de Poisson ( dpois(data,lambda) en R )
     static double poissonFunction(double x, double lambda){
         return Math.pow(lambda, x) / Factorial(x) * Math.pow(Math.E,-lambda);
+    }
+    static List<Double> regLineal(List<Double> y, List<Double> x){
+        double b1 = cov(y,x)/var(x);
+        double b0 = mean(y) - b1 * mean(x);
+        List<Double> res = new ArrayList<>();
+        res.add(b0);
+        res.add(b1);
+        return res;
     }
 }

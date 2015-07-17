@@ -21,7 +21,7 @@ public class CusumSpark {
 
     // TODO preguntar ¿dejamos estos atributos y que las funciones los puedan utilizar libremente o mejor los hacemos locales y que las funciones se los pasen entre sí?
 
-    private static double[] arrayVelA = new double[] {-1.0, 0.0, 0.05, 0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1, 1.5, 2, 2.5, 3}; // Array de velocidades de las rectas, es decir de las pendientes
+    private static double[] arrayVelA = new double[] {-1.0, 0, 0.05 ,0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1, 1.5, 2, 2.5, 3 }; // Array de velocidades de las rectas, es decir de las pendientes
     private static double[] arrayVel = new double[] {-1.0, 3, 2, 1.5, 1, 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.05, 0.0}; // Array de velocidades de las rectas, es decir de las pendientes
     private static double[] arrayThreshold = new double[] {-1.0, 7, 9.8, 14.4};  // Array con los posibles valores umbral para los experimentos
     private static int[] arrayLambda = new int[] {-1, 5, 10, 20};  // Array con las posibles lambdas a tomar en los experimentos
@@ -30,8 +30,6 @@ public class CusumSpark {
 //    private static int lon2 = 50;  // Cantidad de números después de introducir el cambio
 //    private static int exp = 10000;  // Cantidad de experimentos a realizar
 //    private static int nven = 15;  // Cantidad de ventanas a utilizar
-
-    private static double threshold, l0, b0, b1;
 //    private static Poisson poisson = new Poisson();  Clase encargada de proporcionar números aleatoriamente siguiento una distribución de Poisson
 
     public CusumSpark() {
@@ -107,6 +105,11 @@ public class CusumSpark {
      * @return mypos
      */
     static double myPos(double data, double l1, double l2){
+        if (l1 == 0 && l2 == 0){
+            return 0;
+        } else if (l1 == 0 || l2 == 0){
+            return Math.log(FuncionesAuxiliares.poissonFunction(data, l2)/FuncionesAuxiliares.poissonFunction(data,l1));
+        }
         return (l1 - l2 + Math.log(l2 / l1)*data);
     }
 
@@ -145,17 +148,19 @@ public class CusumSpark {
         double[] pb = new double[lont+1];
         double[] gb = new double[lont+1];
 
-
+        double threshAux = 3;
         pa[1] = 0; // p after
         ga[1] = 0; // g after
         pb[1] = 0; // p before
         gb[1] = 0; // g before
         boolean alarma = false;
-        int alarmi = -1;
-        for (int i = 2; i <= lont; i++) { // FIXME debería empezar EN 2 ó en 1
-            lbefore = l0 + i * b0; // Lambda si no hay cambio FIXME en R se comprueba que lbefore > 0
+        int inicio = -1;
+        int alarmi = 150;
+        List<Integer> res = new ArrayList<>();
+        for (int i = 2; i <= lont; i++) {
+            lbefore = l0 + i * b0; // Lambda si no hay cambio
             if ( lbefore < 0 ) lbefore = 0.0;
-            la = lbefore + l0 / 2; //Un poco despues de lbefore. Lo que suma debe ser constante
+            la = lbefore + l0/2 + b0*2; //Un poco despues de lbefore. Lo que suma debe ser constante
             if (FuncionesAuxiliares.poissonFunction(data[i], lbefore) != 0) { //FIXME esto no está en R
                 // s <- log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
                 s = myPos(data[i], lbefore, la);
@@ -167,7 +172,7 @@ public class CusumSpark {
                     ga[i] = ga[i - 1] + s;
                 }
                 // FIXME NUEVO
-                lb = lbefore - l0 / 2;
+                lb = lbefore - l0/2 -b0*2;
                 if (lb < 0) {
                     lb = 0;
                 }
@@ -178,6 +183,13 @@ public class CusumSpark {
                 } else {
                     gb[i] = gb[i - 1] + s;
                 }
+                if (ga[i] > threshAux || gb[i] > threshAux){
+                    if (inicio == -1){
+                        inicio = i;
+                    } else if (ga[i-1] < threshAux && gb[i-1] < threshAux){
+                        inicio = i;
+                    }
+                }
                 if (ga[i] > threshold || gb[i] > threshold & !alarma) {
                     alarmi = i;
                     alarma = true;
@@ -185,6 +197,8 @@ public class CusumSpark {
                 }
             }
         }
+        res.add(inicio);
+        res.add(alarmi);
         return alarmi;
     }
 
@@ -276,7 +290,7 @@ public class CusumSpark {
 //        }
 
         output = "" + threshold + " " + l0 + " " + b0 + " " + b1
-                + " " + FuncionesAuxiliares.mean(velocidades) + " " + " " + FuncionesAuxiliares.sd(velocidades)
+                + " " + FuncionesAuxiliares.mean(velocidades) + " " + " " + FuncionesAuxiliares.sdError(velocidades)
                 + " " + FuncionesAuxiliares.mean(time) + " " + FuncionesAuxiliares.sdError(time)
                 + " " + errorVelocidad + " " + errorArl;
 
@@ -314,14 +328,91 @@ public class CusumSpark {
 //                if ( inverse ){
 //                    time[j] += (lon2-lon);
 //                }
-//                if ( time[j] == 2){
-//                    System.out.println("Velocidad: "+velocidades[j]+"  alarma: "+alarmi);
+//                if ( puntoCambio == 2){
+//                    System.out.println("Velocidad: "+velocidad);
 //                }
                 res.add(puntoCambio);
                 res.add(velocidad);
             } else {
                 res.add(-2d);
                 res.add(-2d);
+            }
+        } else {
+            res.add(-1d);
+            res.add(-1d);
+        }
+        return res;
+    }
+
+    private static double estimaBeta3(int cambio, int lont, double[] data){
+        double[] datareg = new double[lont-cambio+1];
+        double[] x = new double[lont-cambio+1];
+        for (int i = 1; i < datareg.length; i++){
+            datareg[i] = data[i+cambio];
+            x[i] = i+cambio;
+        }
+        return FuncionesAuxiliares.regLineal(datareg, x).get(1);
+    }
+
+    private static double estimaBeta2(double lv, int lon, double lfin, int lon2, int nven, double[] data){
+        double[][] mp = new double[nven+1][lon2+1];
+        double lk, lk0;
+        for (int k = 1; k <= nven; k++) {
+            lk = lv + (lfin - lv) / nven;
+            mp[k][1] = myPos(data[lon+1], lv, lk);
+        }
+        for (int i = 2; i <= lon2; i++) {
+            for (int k = 1; k <= nven; k++) {
+                lk = lv + k * (lfin - lv) / nven; //k+1
+                lk0 = lv + (k - 1) * (lfin - lv) / nven; //k
+                mp[k][i] = mp[k][i - 1] + myPos(data[i + lon], lk0, lk);
+            }
+        }
+        // Regresion de los datos
+        List<Double> minimos = new ArrayList<>();
+        List<Double> lambdas = new ArrayList<>();
+        for (int i = 1; i <= nven; i++) {
+            double auxmin = Double.POSITIVE_INFINITY;
+            double minindex = 1;
+            for (int j = 1; j <= lon2; j++) {
+                if (auxmin > mp[i][j]) {
+                    auxmin = mp[i][j];
+                    minindex = j;
+                }
+            }
+            if ( minindex > 1 && minindex < lon2){
+                minimos.add(minindex);
+                lambdas.add((lfin-lv)/nven*i);
+            }
+        }
+        if (minimos.size() < 2){
+            return Double.NaN;
+        }
+        // FIXME en el de Gauss compueba minimos y la regresion la hace con mus/lambdas ~ minimos
+        List<Double> reg = FuncionesAuxiliares.regLineal(lambdas, minimos);
+        if (Double.isNaN(reg.get(1)) || Double.isInfinite(reg.get(1))){
+            return Double.NaN;
+        }
+        return reg.get(1);
+    }
+
+    private static List<Double> estimaPuntoCambio2(double l0, double b0, int lon, double b1, int lon2, int nven, double threshold, double[] data) {
+        int lont = lon + lon2;
+        List<Double> res = new ArrayList<>();
+        int cambio = detectaCambio(lont, l0, b0, threshold, data);
+        if (cambio >= lon && cambio < lont) {
+            double betaEstimada3 = estimaBeta3(lon, cambio, data);
+//            double lv = l0 + b0*cambio;
+//            double lfinal = lv + (lont - cambio) * betaEstimada3;
+            int lon2aux = lont - cambio;
+//            double betaEstimada2 = estimaBeta2(lv, cambio, lfinal, lon2aux, nven, data);
+            if (Double.isNaN(betaEstimada3)) {
+                res.add(-2d);
+                res.add(-2d);
+            } else {
+                double puntoCambio = calculaPuntoCambio(cambio, lon2aux, l0, b0, betaEstimada3, data);
+                res.add(puntoCambio);
+                res.add(betaEstimada3);
             }
         } else {
             res.add(-1d);
@@ -338,9 +429,9 @@ public class CusumSpark {
         List<Double> res;
         int errorVel = 0;
         int errorArl = 0;
-        while (i <= exp){
+        while (i <= exp) {
             data = generaDatosLambda(l0, b0, b1, lon, lon2);
-            res = estimaPuntoCambio(l0, b0, lon, b1, lon2, nven, threshold, data);
+            res = estimaPuntoCambio2(l0, b0, lon, b1, lon2, nven, threshold, data);
             if (res.get(0) == -1){
                 errorArl++;
             }else if (res.get(0) == -2){
@@ -359,7 +450,7 @@ public class CusumSpark {
      * y calcula en punto en el que se ha producido dicho cambio
      */
     public static void realizaExperimentos() {
-
+        double threshold, l0, b0, b1;
         for (int n = 1; n < arrayLambda.length; n++) {
             threshold = arrayThreshold[n]; // Establece el umbral
             l0 = arrayLambda[n]; // Establece la lambda inicial
