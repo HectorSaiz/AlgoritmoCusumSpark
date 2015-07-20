@@ -13,7 +13,15 @@ public class Main {
 
         time_start = System.currentTimeMillis();
         System.out.println("Arrancan los experimentos\n");
-        CusumSpark.realizaExperimentos(); // llamamos a la tarea
+//        CusumSpark.realizaExperimentos(); // llamamos a la tarea
+        CusumSpark cusumSpark = new CusumSpark();
+        Thread t = new Thread(cusumSpark);
+        t.start();
+        try {
+            t.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         time_end = System.currentTimeMillis();
 
         System.out.println("\nTiempo empleado " + (time_end - time_start) / 1000 + " segundos -> " + (time_end - time_start) / 1000 / 60 + " minutos");
