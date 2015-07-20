@@ -348,7 +348,6 @@ public class CusumSpark implements IObservador {
                     b1 = arrayVelA[indexb1];
                     unExperimento(l0, b0, b1, 100, 50, 15, threshold, 10000);
                 }
-
             }
         }
     }
