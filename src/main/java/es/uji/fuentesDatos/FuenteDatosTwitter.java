@@ -1,9 +1,10 @@
-package es.uji.cusumSpark;
+package es.uji.fuentesDatos;
 
 import java.util.Date;
-import filter.NoRetweetFilter;
-import process.Processor;
-import process.Persister;
+
+import es.uji.filter.NoRetweetFilter;
+import es.uji.processor.Persister;
+import es.uji.processor.Processor;
 import twitter4j.*;
 import twitter4j.auth.AccessToken;
 import twitter4j.conf.ConfigurationBuilder;
@@ -11,7 +12,7 @@ import twitter4j.conf.ConfigurationBuilder;
 /**
  * Creado by oscar on 27/06/14.
  */
-public class Ejemplo {
+public class FuenteDatosTwitter {
     private String consumerKey;
     private String consumerSecret;
     private String token;
@@ -28,7 +29,7 @@ public class Ejemplo {
 //    private Processor processor = new Persister(new NoRetweetFilter());
     private Processor processor;
 
-    public Ejemplo() {
+    public FuenteDatosTwitter() {
     }
 
     private void loadProperties() {
@@ -53,10 +54,10 @@ public class Ejemplo {
 //            }
 //        }
         System.out.println("Empieza la fiesta!!!!" + new Date());
-        Ejemplo ejemplo = new Ejemplo();
-        ejemplo.createProcessor(args[0]);
-        ejemplo.loadProperties();
-        ejemplo.starListener(topics);
+        FuenteDatosTwitter fuenteDatosTwitter = new FuenteDatosTwitter();
+        fuenteDatosTwitter.createProcessor(args[0]);
+        fuenteDatosTwitter.loadProperties();
+        fuenteDatosTwitter.starListener(topics);
     }
 
     private void createProcessor(String table) {

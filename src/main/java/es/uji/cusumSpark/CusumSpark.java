@@ -1,5 +1,8 @@
 package es.uji.cusumSpark;
 
+import es.uji.fuentesDatos.FuenteDatosPoisson;
+import es.uji.fuentesDatos.Tarea;
+import es.uji.fuentesDatos.ZonaIntercambioEventos;
 import org.apache.commons.math3.random.RandomDataGenerator;
 
 import java.util.ArrayList;

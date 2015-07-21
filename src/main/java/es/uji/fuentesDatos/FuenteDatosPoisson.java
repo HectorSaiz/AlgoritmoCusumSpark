@@ -1,9 +1,6 @@
-package es.uji.cusumSpark;
+package es.uji.fuentesDatos;
 
 import org.apache.commons.math3.random.RandomDataGenerator;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by hector on 18/07/15.
@@ -30,7 +27,6 @@ public class FuenteDatosPoisson implements Runnable {
 
     @Override
     public void run() {
-
         double l, dato;
 
         for (int i = 1; i <= lon; i++) {

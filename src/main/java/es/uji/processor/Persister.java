@@ -1,10 +1,9 @@
-package es.uji.cusumSpark;
+package es.uji.processor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import filter.Filter;
-import filter.NoFilter;
-import filter.NoRetweetFilter;
+import es.uji.filter.Filter;
+import es.uji.filter.NoRetweetFilter;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.node.Node;
@@ -23,7 +22,7 @@ public class Persister implements Processor {
 
     public Persister(String table) {
         this.table = table;
-        filter = new NoFilter();
+        filter = new NoRetweetFilter();
         createClient();
     }
 

@@ -1,4 +1,4 @@
-package es.uji.cusumSpark;
+package es.uji.filter;
 
 import twitter4j.Status;
 

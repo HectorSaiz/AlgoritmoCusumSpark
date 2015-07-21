@@ -1,4 +1,7 @@
-package es.uji.cusumSpark;
+package es.uji.main;
+
+import es.uji.cusumSpark.CusumSpark;
+import es.uji.fuentesDatos.ZonaIntercambioEventos;
 
 public class Main {
 
