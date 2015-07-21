@@ -72,18 +72,28 @@ public class CusumSpark implements Runnable {
 
     private double[] generaDatosLambda(double l0, double b0, double b1, int lon, int lon2){
 
-        if (topico == null) {
-            Tarea tarea;
-            double dato;
-            boolean veneno;
-            data = new double[lon+lon2+1];
-            data[0] = 0d;
-            dataIndex = 1;
-            long tiempoEspera = 1;
+        Tarea tarea;
+        double dato;
+        boolean veneno;
+        data = new double[lon+lon2+1];
+        data[0] = 0d;
+        dataIndex = 1;
 
-            FuenteDatosPoisson eventSource = new FuenteDatosPoisson( tiempoEspera, l0, b0, b1, lon, lon2, zonaIntercambioEventos );
+        if (topico == null) {
+
+            if ( dataIndex > 1 && t.isAlive() ) {
+                try {
+                    t.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            long tiempoEspera = 1;
+            FuenteDatosPoisson eventSource = new FuenteDatosPoisson(tiempoEspera, l0, b0, b1, lon, lon2, zonaIntercambioEventos);
             t = new Thread(eventSource);
             t.start();
+        }
 
             do {
                 tarea = zonaIntercambioEventos.dameTarea();
@@ -91,7 +101,7 @@ public class CusumSpark implements Runnable {
             dato = tarea.getCantidadEventos();
             veneno = tarea.isEsVeneno();
 
-            while( !veneno ){
+            while( !veneno ) {
                 data[dataIndex] = dato;
                 dataIndex ++;
 
@@ -103,12 +113,6 @@ public class CusumSpark implements Runnable {
             }
 
             return data;
-        } else {
-
-            // TODO cuando esté twitter simplemente debe recoger de la zona de intercambio
-            System.out.println("Fallo: " + topico);
-            return null;
-        }
 
     }
 

@@ -1,6 +1,7 @@
 package es.uji.main;
 
 import es.uji.cusumSpark.CusumSpark;
+import es.uji.fuentesDatos.FuenteDatosTwitter;
 import es.uji.fuentesDatos.ZonaIntercambioEventos;
 
 public class Main {
@@ -8,21 +9,31 @@ public class Main {
     public static void main(String[] args) {
 
         long time_start, time_end;
-        Thread t;
+        Thread cusum, twitter;
         CusumSpark cusumSpark;
+        FuenteDatosTwitter conectorTwitter;
         ZonaIntercambioEventos zonaIntercambio;
 
         System.out.println("Inicia tarea principal\n");
 
         time_start = System.currentTimeMillis();
         zonaIntercambio = new ZonaIntercambioEventos();
+
         System.out.println("Arrancan los experimentos\n");
 //        CusumSpark.realizaExperimentos(); // llamamos a la tarea
+
+        String[] argumentos = new String[2];
+        argumentos[0] = "tabla";
+        argumentos[1] = "love";
+
+        conectorTwitter = new FuenteDatosTwitter( argumentos, zonaIntercambio );
+        twitter = new Thread( conectorTwitter );
+        twitter.start();
         cusumSpark = new CusumSpark( zonaIntercambio );
-        t = new Thread(cusumSpark);
-        t.start();
+        cusum = new Thread(cusumSpark);
+        cusum.start();
         try {
-            t.join();
+            cusum.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

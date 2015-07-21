@@ -1,4 +1,4 @@
-package es.uji.cusumSpark;
+package es.uji.fuentesDatos;
 
 import java.util.Date;
 
@@ -14,7 +14,7 @@ import java.util.Date;
 /**
  * Creado by oscar on 27/06/14.
  */
-public class FuenteDatosTwitter {
+public class FuenteDatosTwitter implements Runnable{
     private String consumerKey;
     private String consumerSecret;
     private String token;
@@ -30,8 +30,12 @@ public class FuenteDatosTwitter {
     //    private Processor processor = new FiveMinutesCycle(new NoRetweetFilter());
 //    private Processor processor = new Persister(new NoRetweetFilter());
     private Processor processor;
+    private String [] args;
+    private ZonaIntercambioEventos zonaIntercambio;
 
-    public FuenteDatosTwitter() {
+    public FuenteDatosTwitter( String [] args, ZonaIntercambioEventos zonaIntercambioEventos ) {
+        this.args = args;
+        this.zonaIntercambio = zonaIntercambioEventos;
     }
 
     private void loadProperties() {
@@ -42,25 +46,25 @@ public class FuenteDatosTwitter {
     }
 
 
-    public static void main(String[] args) {
-        String[] topics = new String[args.length-1];
-        for(int i = 1; i < args.length; i++)
-            topics[i-1] = args[i];
-//        while(true) {
-//            if(checkTime()) break;
-//            try {
-//                System.out.print("Comprobando... " + new Date() + "\r");
-//                Thread.sleep(1 * 60 * 1000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
-        System.out.println("Empieza la fiesta!!!!" + new Date());
-        FuenteDatosTwitter fuenteDatosTwitter = new FuenteDatosTwitter();
-        fuenteDatosTwitter.createProcessor(args[0]);
-        fuenteDatosTwitter.loadProperties();
-        fuenteDatosTwitter.starListener(topics);
-    }
+//    public static void main(String[] args) {
+//        String[] topics = new String[args.length-1];
+//        for(int i = 1; i < args.length; i++)
+//            topics[i-1] = args[i];
+////        while(true) {
+////            if(checkTime()) break;
+////            try {
+////                System.out.print("Comprobando... " + new Date() + "\r");
+////                Thread.sleep(1 * 60 * 1000);
+////            } catch (InterruptedException e) {
+////                e.printStackTrace();
+////            }
+////        }
+//        System.out.println("Empieza la fiesta!!!!" + new Date());
+//        FuenteDatosTwitter fuenteDatosTwitter = new FuenteDatosTwitter();
+//        fuenteDatosTwitter.createProcessor(args[0]);
+//        fuenteDatosTwitter.loadProperties();
+//        fuenteDatosTwitter.starListener(topics);
+//    }
 
     private void createProcessor(String table) {
 //        processor = new Persister(new NoRetweetFilter(), table);
@@ -87,6 +91,8 @@ public class FuenteDatosTwitter {
         StatusListener listener = new StatusListener() {
             @Override
             public void onStatus(Status status) {
+                Tarea t;
+                double cantidadEventos;
                 if(processor.processTweet(status)) {
                     totales++;
                     if (tiempoTotal == 0 ) {
@@ -95,7 +101,10 @@ public class FuenteDatosTwitter {
                     }
                     tiempoTotal = status.getCreatedAt().getTime();
                     if ( (tiempoTotal - segAnterior) >= 1000 ){
-                        System.out.println("Fecha: " + status.getCreatedAt() + " Nº Tweets: " + (totales-totalesAnterior));
+//                        System.out.println("Fecha: " + status.getCreatedAt() + " Nº Tweets: " + (totales-totalesAnterior));
+                        cantidadEventos = totales-totalesAnterior;
+                        t = new Tarea( cantidadEventos, false);
+                        zonaIntercambio.insertaTarea( t );
                         segAnterior = status.getCreatedAt().getTime();
                         totalesAnterior = totales;
                     }
@@ -156,13 +165,27 @@ public class FuenteDatosTwitter {
         processor.stop();
     }
 
-    private String tiempo() {
-        long ahora = System.currentTimeMillis();
-        long segundosTotales = (ahora - inicio)/1000;
-        long dias = segundosTotales / (60*60*24);
-        long horas = segundosTotales / (60*60) - (dias*24);
-        long minutos = segundosTotales / 60 - (dias*24 + horas*60);
-        long segundos = segundosTotales - (dias*24 + horas*60 + minutos*60);
-        return dias + " dias " + horas + "h. " + minutos + "m. " + segundos + "s.";
+//    private String tiempo() {
+//        long ahora = System.currentTimeMillis();
+//        long segundosTotales = (ahora - inicio)/1000;
+//        long dias = segundosTotales / (60*60*24);
+//        long horas = segundosTotales / (60*60) - (dias*24);
+//        long minutos = segundosTotales / 60 - (dias*24 + horas*60);
+//        long segundos = segundosTotales - (dias*24 + horas*60 + minutos*60);
+//        return dias + " dias " + horas + "h. " + minutos + "m. " + segundos + "s.";
+//    }
+
+    @Override
+    public void run() {
+
+        String[] topics = new String[args.length-1];
+        for(int i = 1; i < args.length; i++)
+            topics[i-1] = args[i];
+
+        System.out.println("Empieza la fiesta!!!!" + new Date());
+        createProcessor(args[0]);
+        loadProperties();
+        starListener(topics);
+
     }
 }
