@@ -1,4 +1,4 @@
-package es.uji.cusumSpark;
+package es.uji.processor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
