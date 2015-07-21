@@ -1,4 +1,4 @@
-package es.uji.fuentesDatos;
+package es.uji.cusumSpark;
 
 import java.util.Date;
 
@@ -8,6 +8,8 @@ import es.uji.processor.Processor;
 import twitter4j.*;
 import twitter4j.auth.AccessToken;
 import twitter4j.conf.ConfigurationBuilder;
+
+import java.util.Date;
 
 /**
  * Creado by oscar on 27/06/14.
