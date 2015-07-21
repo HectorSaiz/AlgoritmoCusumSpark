@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * Created by root on 6/24/15.
  */
-public class CusumSpark implements IObservador {
+public class CusumSpark implements Runnable {
 
 
     // TODO preguntar ¿dejamos estos atributos y que las funciones los puedan utilizar libremente o mejor los hacemos locales y que las funciones se los pasen entre sí?
@@ -21,6 +21,8 @@ public class CusumSpark implements IObservador {
     private static int dataIndex; // TODO eliminar al pasar a arrayList
     private Thread t;
     private RandomDataGenerator rdg;
+    private String topico;
+    private ZonaIntercambioEventos zonaIntercambioEventos;
 
 //    private static int lon = 100;  // Cantidad de números antes de introducir en cambio
 //    private static int lon2 = 50;  // Cantidad de números después de introducir el cambio
@@ -28,9 +30,18 @@ public class CusumSpark implements IObservador {
 //    private static int nven = 15;  // Cantidad de ventanas a utilizar
 //    private static Poisson poisson = new Poisson();  Clase encargada de proporcionar números aleatoriamente siguiento una distribución de Poisson
 
-    public CusumSpark() {
+    public CusumSpark( ZonaIntercambioEventos zonaIntercambioEventos) {
         super();
+        this.topico = null;
+        this.zonaIntercambioEventos = zonaIntercambioEventos;
     }
+
+    public CusumSpark(String topico, ZonaIntercambioEventos zonaIntercambioEventos) {
+        super();
+        this.topico = topico;
+        this.zonaIntercambioEventos = zonaIntercambioEventos;
+    }
+
     /**
      * Detecta donde se produce el cambio
      * @param data
@@ -57,25 +68,48 @@ public class CusumSpark implements IObservador {
     }
 
     private double[] generaDatosLambda(double l0, double b0, double b1, int lon, int lon2){
-        rdg = new RandomDataGenerator();
-        data = new double[lon+lon2+1];
-        data[0] = 0d;
-        dataIndex = 1;
-        FuenteDatosPoisson eventSource = new FuenteDatosPoisson( 1, l0, b0, b1, lon, lon2 );
-        eventSource.agregarObservador(this);
 
-        t = new Thread(eventSource);
-        t.start();
-        try {
-            t.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        if (topico == null) {
+            Tarea tarea;
+            double dato;
+            boolean veneno;
+            data = new double[lon+lon2+1];
+            data[0] = 0d;
+            dataIndex = 1;
+            long tiempoEspera = 1;
+
+            FuenteDatosPoisson eventSource = new FuenteDatosPoisson( tiempoEspera, l0, b0, b1, lon, lon2, zonaIntercambioEventos );
+            t = new Thread(eventSource);
+            t.start();
+
+            do {
+                tarea = zonaIntercambioEventos.dameTarea();
+            } while (tarea == null);
+            dato = tarea.getCantidadEventos();
+            veneno = tarea.isEsVeneno();
+
+            while( !veneno ){
+                data[dataIndex] = dato;
+                dataIndex ++;
+
+                do {
+                    tarea = zonaIntercambioEventos.dameTarea();
+                } while (tarea == null);
+                dato = tarea.getCantidadEventos();
+                veneno = tarea.isEsVeneno();
+            }
+
+            return data;
+        } else {
+
+            // TODO cuando esté twitter simplemente debe recoger de la zona de intercambio
+            System.out.println("Fallo: " + topico);
+            return null;
         }
 
-        return data;
     }
 
-    private static int detectaCambio(int lont, double l0, double b0, double threshold, double[] data) {
+    private int detectaCambio(int lont, double l0, double b0, double threshold, double[] data) {
         // Detecta que ha ocurrido un cambio
         double lbefore, la, lb, s;
         double[] pa = new double[lont+1];
@@ -137,7 +171,7 @@ public class CusumSpark implements IObservador {
         return alarmi;
     }
 
-    private static List<Double> calculaVelocidad(double lv, int lon, double lfin, int lon2, int nven, double[] data){
+    private List<Double> calculaVelocidad(double lv, int lon, double lfin, int lon2, int nven, double[] data){
         double[][] mp = new double[nven+1][lon2+1];
         for (int k = 1; k <= nven; k++) {
             double lk = lv + (lfin - lv) / nven;
@@ -179,7 +213,7 @@ public class CusumSpark implements IObservador {
      * @param data
      * @return S
      */
-    static int calculaPuntoCambio(int lon, int lon2, double l0, double b0, double velocidad, double[] data){
+    private int calculaPuntoCambio(int lon, int lon2, double l0, double b0, double velocidad, double[] data){
         int first = 1;
         int last = lon + lon2;
         int lont = last - first;
@@ -212,7 +246,7 @@ public class CusumSpark implements IObservador {
         return maxindex + first;
     }
 
-    private static void muestraResultadosExperimentos(double threshold, double l0, double b0, double b1, double[] time, double[] velocidades, int errorArl, int errorVelocidad) {
+    private void muestraResultadosExperimentos(double threshold, double l0, double b0, double b1, double[] time, double[] velocidades, int errorArl, int errorVelocidad) {
         String output;
 
 //        List arlMC = new ArrayList<Double>();
@@ -232,7 +266,7 @@ public class CusumSpark implements IObservador {
         System.out.println(output);
     }
 
-    private static List<Double> estimaPuntoCambio(double l0, double b0, int lon, double b1, int lon2, int nven, double threshold, double[] data){
+    private List<Double> estimaPuntoCambio(double l0, double b0, int lon, double b1, int lon2, int nven, double threshold, double[] data){
         int lont = lon + lon2;
         int cambio = detectaCambio(lont, l0, b0, threshold, data);
         List<Double> res = new ArrayList<>();
@@ -325,12 +359,6 @@ public class CusumSpark implements IObservador {
 //            }
 //        }
 //    }
-
-    @Override
-    public void actualizar(double dato) {
-        data[dataIndex] = dato;
-        dataIndex++;
-    }
 
     @Override
     public void run() {

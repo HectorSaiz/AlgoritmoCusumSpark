@@ -1,21 +1,22 @@
 package es.uji.cusumSpark;
 
-import java.io.FileWriter;
-import java.io.PrintWriter;
-
 public class Main {
 
     public static void main(String[] args) {
 
         long time_start, time_end;
+        Thread t;
+        CusumSpark cusumSpark;
+        ZonaIntercambioEventos zonaIntercambio;
 
         System.out.println("Inicia tarea principal\n");
 
         time_start = System.currentTimeMillis();
+        zonaIntercambio = new ZonaIntercambioEventos();
         System.out.println("Arrancan los experimentos\n");
 //        CusumSpark.realizaExperimentos(); // llamamos a la tarea
-        CusumSpark cusumSpark = new CusumSpark();
-        Thread t = new Thread(cusumSpark);
+        cusumSpark = new CusumSpark( zonaIntercambio );
+        t = new Thread(cusumSpark);
         t.start();
         try {
             t.join();
