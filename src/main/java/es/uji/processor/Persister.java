@@ -72,11 +72,12 @@ public class Persister implements Processor {
                 jsonStatus = objectMapper.writeValueAsString(status);
 //                System.out.println(status.getUser().getLocation());
                 String id = status.getId() + "";
-                IndexResponse indexResponse = client.prepareIndex("niall", table, id)
+                IndexResponse indexResponse = client.prepareIndex("love", table, id)
 //                IndexResponse indexResponse = client.prepareIndex("incendio", "espanya", id)
                         .setSource(jsonStatus)
                         .execute()
                         .actionGet();
+                System.out.println(status.getText());
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }

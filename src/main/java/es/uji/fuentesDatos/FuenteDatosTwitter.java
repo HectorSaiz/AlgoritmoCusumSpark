@@ -101,7 +101,7 @@ public class FuenteDatosTwitter implements Runnable{
                     }
                     tiempoTotal = status.getCreatedAt().getTime();
                     if ( (tiempoTotal - segAnterior) >= 1000 ){
-//                        System.out.println("Fecha: " + status.getCreatedAt() + " Nº Tweets: " + (totales-totalesAnterior));
+                        System.out.println("Fecha: " + status.getCreatedAt() + " Nº Tweets: " + (totales-totalesAnterior));
                         cantidadEventos = totales-totalesAnterior;
                         t = new Tarea( cantidadEventos, false);
                         zonaIntercambio.insertaTarea( t );

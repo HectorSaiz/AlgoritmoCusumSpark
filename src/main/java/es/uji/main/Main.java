@@ -22,14 +22,15 @@ public class Main {
         System.out.println("Arrancan los experimentos\n");
 //        CusumSpark.realizaExperimentos(); // llamamos a la tarea
 
-        String[] argumentos = new String[2];
-        argumentos[0] = "tabla";
-        argumentos[1] = "love";
+        if (args.length > 0){
 
-        conectorTwitter = new FuenteDatosTwitter( argumentos, zonaIntercambio );
-        twitter = new Thread( conectorTwitter );
-        twitter.start();
-        cusumSpark = new CusumSpark( zonaIntercambio );
+            conectorTwitter = new FuenteDatosTwitter( args, zonaIntercambio );
+            twitter = new Thread( conectorTwitter );
+            twitter.start();
+            cusumSpark = new CusumSpark( "twitter", zonaIntercambio );
+        } else {
+            cusumSpark = new CusumSpark( zonaIntercambio );
+        }
         cusum = new Thread(cusumSpark);
         cusum.start();
         try {
