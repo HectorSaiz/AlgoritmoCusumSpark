@@ -63,7 +63,6 @@ public class ProcessorTweet implements Processor {
 
                 cantidadEventos = map.remove(map.firstKey());
 //                System.out.println("CantidadEventos: " + cantidadEventos);
-                // FIXME a veces me ha salido nullpointerexception ¿cantidadEventos?
                 t = new Tarea(cantidadEventos, false);
                 zonaIntercambio.insertaTarea(t);
             }
