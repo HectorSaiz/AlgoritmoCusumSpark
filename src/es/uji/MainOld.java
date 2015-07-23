@@ -22,7 +22,12 @@ public class MainOld {
         System.out.println("Arrancan los experimentos\n");
 //        CusumSpark.realizaExperimentos(); // llamamos a la tarea
 
-        if (args.length > 0){
+        if (args.length > 1) {
+            System.out.println("ERROR: solo se permite introducir una cadena");
+            System.exit(-1);
+        }
+
+        if (args.length == 1){
 
             conectorTwitter = new FuenteDatosTwitter( args, zonaIntercambio );
             twitter = new Thread( conectorTwitter );

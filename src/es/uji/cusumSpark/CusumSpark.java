@@ -31,7 +31,6 @@ public class CusumSpark implements Runnable {
 //    private static int lon2 = 50;  // Cantidad de números después de introducir el cambio
 //    private static int exp = 10000;  // Cantidad de experimentos a realizar
 //    private static int nven = 15;  // Cantidad de ventanas a utilizar
-//    private static Poisson poisson = new Poisson();  Clase encargada de proporcionar números aleatoriamente siguiento una distribución de Poisson
 
     public CusumSpark( ZonaIntercambioEventos zonaIntercambioEventos) {
         super();
@@ -80,11 +79,10 @@ public class CusumSpark implements Runnable {
         double dato;
         boolean veneno;
         data = new ArrayList<>();
-        dataIndex = 1;
 
         if (topico == null) {
 
-            if ( dataIndex > 1 && t.isAlive() ) {
+            if ( t!= null && t.isAlive() ) {
                 try {
                     t.join();
                 } catch (InterruptedException e) {
@@ -106,12 +104,12 @@ public class CusumSpark implements Runnable {
 
             while( !veneno ) {
                 data.add(dato);
-                dataIndex ++;
 
                 do {
                     tarea = zonaIntercambioEventos.dameTarea();
                 } while (tarea == null);
                 dato = tarea.getCantidadEventos();
+                System.out.println(dato);
                 veneno = tarea.isEsVeneno();
             }
 

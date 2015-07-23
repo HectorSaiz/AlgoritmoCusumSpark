@@ -15,7 +15,7 @@ import es.uji.view.Controller;
 
 /**
  * Main que arranca la interfaz grafica
- * @author Alberto y Juan
+ * @author Alberto y Héctor
  *
  */
 public class Main extends Application {

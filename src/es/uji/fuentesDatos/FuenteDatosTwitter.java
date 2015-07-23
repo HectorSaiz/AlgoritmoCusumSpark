@@ -1,8 +1,7 @@
 package es.uji.fuentesDatos;
 
 import es.uji.filter.NoRetweetFilter;
-import es.uji.processor.Persister;
-import es.uji.processor.Processor;
+import es.uji.processor.ProcessorTweet;
 import twitter4j.*;
 import twitter4j.auth.AccessToken;
 import twitter4j.conf.ConfigurationBuilder;
@@ -17,23 +16,18 @@ public class FuenteDatosTwitter implements Runnable{
     private String consumerSecret;
     private String token;
     private String tokenSecret;
-    private long totales = 0;
-    private long totalesAnterior = 0;
-    private long inicio = System.currentTimeMillis();
-    private long tiempoTotal = 0;
-    private long segAnterior = 0;
-//    private static final Date startDate = new GregorianCalendar(2014, Calendar.JULY, 11, 14, 0, 0).getTime();
+    private long totales;
+    private boolean bufferInicializado;
 
-
-    //    private Processor processor = new FiveMinutesCycle(new NoRetweetFilter());
-//    private Processor processor = new Persister(new NoRetweetFilter());
-    private Processor processor;
+    private ProcessorTweet processor;
     private String [] args;
     private ZonaIntercambioEventos zonaIntercambio;
 
     public FuenteDatosTwitter( String [] args, ZonaIntercambioEventos zonaIntercambioEventos ) {
         this.args = args;
         this.zonaIntercambio = zonaIntercambioEventos;
+        this.totales = 0;
+        this.bufferInicializado = false;
     }
 
     private void loadProperties() {
@@ -44,36 +38,14 @@ public class FuenteDatosTwitter implements Runnable{
     }
 
 
-//    public static void main(String[] args) {
-//        String[] topics = new String[args.length-1];
-//        for(int i = 1; i < args.length; i++)
-//            topics[i-1] = args[i];
-////        while(true) {
-////            if(checkTime()) break;
-////            try {
-////                System.out.print("Comprobando... " + new Date() + "\r");
-////                Thread.sleep(1 * 60 * 1000);
-////            } catch (InterruptedException e) {
-////                e.printStackTrace();
-////            }
-////        }
-//        System.out.println("Empieza la fiesta!!!!" + new Date());
-//        FuenteDatosTwitter fuenteDatosTwitter = new FuenteDatosTwitter();
-//        fuenteDatosTwitter.createProcessor(args[0]);
-//        fuenteDatosTwitter.loadProperties();
-//        fuenteDatosTwitter.starListener(topics);
-//    }
-
-    private void createProcessor(String table) {
-//        processor = new Persister(new NoRetweetFilter(), table);
-        processor = new Persister(new NoRetweetFilter(), table);
+    private void createProcessor() {
+        processor = new ProcessorTweet(zonaIntercambio, new NoRetweetFilter());
     }
 
-//    private static boolean checkTime() {
-//        if(System.currentTimeMillis() > startDate.getTime())
-//            return true;
-//        else return false;
-//    }
+
+    public long tweetsTotales () {
+        return totales;
+    }
 
     private void starListener(String[] topics) {
         for(String topic: topics)
@@ -83,30 +55,19 @@ public class FuenteDatosTwitter implements Runnable{
         cb.setJSONStoreEnabled(true);
 
         TwitterStream twitterStream = new TwitterStreamFactory(cb.build()).getInstance();
-        twitterStream.setOAuthConsumer(consumerKey,consumerSecret);
+        twitterStream.setOAuthConsumer(consumerKey, consumerSecret);
         twitterStream.setOAuthAccessToken(new AccessToken(token, tokenSecret));
 
         StatusListener listener = new StatusListener() {
             @Override
             public void onStatus(Status status) {
-                Tarea t;
-                double cantidadEventos;
-                if(processor.processTweet(status)) {
-                    totales++;
-                    if (tiempoTotal == 0 ) {
-                        segAnterior = status.getCreatedAt().getTime();
-                        totalesAnterior = 0;
-                    }
-                    tiempoTotal = status.getCreatedAt().getTime();
-                    if ( (tiempoTotal - segAnterior) >= 1000 ){
-                        System.out.println("Fecha: " + status.getCreatedAt() + " Nº Tweets: " + (totales-totalesAnterior));
-                        cantidadEventos = totales-totalesAnterior;
-                        t = new Tarea( cantidadEventos, false);
-                        zonaIntercambio.insertaTarea( t );
-                        segAnterior = status.getCreatedAt().getTime();
-                        totalesAnterior = totales;
-                    }
+
+                if (!bufferInicializado){
+                    bufferInicializado = processor.inicializaBuffer(status);
+                } else {
+                    processor.processTweet(status);
                 }
+                totales++;
             }
 
             @Override
@@ -148,6 +109,10 @@ public class FuenteDatosTwitter implements Runnable{
             Thread.sleep(2000);
 //            for(int i = 0; i < 1440; i++) {
             while(true) {
+
+                // TODO NUNCA acaba este bucle, cuando implementemos la interfaz gráfica que haya un escuchador
+                // (todo) a un botón que pare el flujo de datos de twitter
+
 //                System.out.print("Minuto " + i + " de 1440.\r");
 //                System.out.print("Tweets: " + totales + " en " + new Date() + "\r");
 //                System.out.print(totales + " tweets en " + tiempo() + "\r");
@@ -163,25 +128,16 @@ public class FuenteDatosTwitter implements Runnable{
         processor.stop();
     }
 
-//    private String tiempo() {
-//        long ahora = System.currentTimeMillis();
-//        long segundosTotales = (ahora - inicio)/1000;
-//        long dias = segundosTotales / (60*60*24);
-//        long horas = segundosTotales / (60*60) - (dias*24);
-//        long minutos = segundosTotales / 60 - (dias*24 + horas*60);
-//        long segundos = segundosTotales - (dias*24 + horas*60 + minutos*60);
-//        return dias + " dias " + horas + "h. " + minutos + "m. " + segundos + "s.";
-//    }
 
     @Override
     public void run() {
 
-        String[] topics = new String[args.length-1];
-        for(int i = 1; i < args.length; i++)
-            topics[i-1] = args[i];
+        String[] topics = new String[args.length];
+        for(int i = 0; i < args.length; i++)
+            topics[i] = args[i];
 
         System.out.println("Empieza la fiesta!!!!" + new Date());
-        createProcessor(args[0]);
+        createProcessor();
         loadProperties();
         starListener(topics);
 

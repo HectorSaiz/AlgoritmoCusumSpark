@@ -5,7 +5,7 @@ import es.uji.cusumSpark.CusumSpark;
 
 /**
  * Clase controlador
- * @author Alberto y Juan
+ * @author Alberto y Héctor
  *
  */
 public abstract class Controller {
