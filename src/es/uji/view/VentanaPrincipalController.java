@@ -20,8 +20,8 @@ import java.util.TimerTask;
 public class VentanaPrincipalController extends Controller{
 
     final ToggleGroup group = new ToggleGroup();
-    private ObservableList<ScatterChart.Series<Integer,Double>> data = FXCollections.observableArrayList();
-    private ScatterChart.Series<Integer,Double> mySerie = new ScatterChart.Series();
+    private ObservableList<XYChart.Data<Integer,Double>> data = FXCollections.observableArrayList();
+    final ScatterChart.Series<Integer,Double> mySerie = new XYChart.Series();
     private List<Double> rawData = new ArrayList<>();
 
     @FXML
@@ -39,15 +39,15 @@ public class VentanaPrincipalController extends Controller{
     private void initialize(){
         simulationButton.setToggleGroup(group);
         twitterButton.setToggleGroup(group);
-        data.add(mySerie);
-        dataChart.setData(data);
+        mySerie.setData(data);
+        dataChart.getData().add(mySerie);
         Timer timer = new Timer();
 
         timer.schedule(new TimerTask() {
             public void run() {
                 Platform.runLater(new Runnable() {
                     public void run() {
-                        //System.out.println("Hola");
+//                        System.out.println("Hola");
                         updateChart();
                     }
                 });
@@ -69,9 +69,8 @@ public class VentanaPrincipalController extends Controller{
     }
 
     private void updateChart(){
-        mySerie.getData().clear();
         for ( Double elem : rawData){
-            mySerie.getData().add(new ScatterChart.Data(rawData.indexOf(elem), elem));
+            data.add(new XYChart.Data(rawData.indexOf(elem), elem));
         }
     }
 
