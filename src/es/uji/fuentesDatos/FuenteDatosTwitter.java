@@ -1,7 +1,5 @@
 package es.uji.fuentesDatos;
 
-import java.util.Date;
-
 import es.uji.filter.NoRetweetFilter;
 import es.uji.processor.Persister;
 import es.uji.processor.Processor;

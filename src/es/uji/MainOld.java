@@ -1,10 +1,10 @@
-package es.uji.main;
+package es.uji;
 
 import es.uji.cusumSpark.CusumSpark;
 import es.uji.fuentesDatos.FuenteDatosTwitter;
 import es.uji.fuentesDatos.ZonaIntercambioEventos;
 
-public class Main {
+public class MainOld {
 
     public static void main(String[] args) {
 

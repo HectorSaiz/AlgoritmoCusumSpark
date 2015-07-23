@@ -20,7 +20,7 @@ public class CusumSpark implements Runnable {
     private static double[] arrayVel = new double[] {-1.0, 3, 2, 1.5, 1, 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.05, 0.0}; // Array de velocidades de las rectas, es decir de las pendientes
     private static double[] arrayThreshold = new double[] {-1.0, 7, 9.8, 14.4};  // Array con los posibles valores umbral para los experimentos
     private static int[] arrayLambda = new int[] {-1, 5, 10, 20};  // Array con las posibles lambdas a tomar en los experimentos
-    private static double[] data; // TODO pasar a arraylist con tamaño dinámico
+    private static ArrayList<Double> data; // TODO pasar a arraylist con tamaño dinámico
     private static int dataIndex; // TODO eliminar al pasar a arrayList
     private Thread t;
     private RandomDataGenerator rdg;
@@ -43,6 +43,10 @@ public class CusumSpark implements Runnable {
         super();
         this.topico = topico;
         this.zonaIntercambioEventos = zonaIntercambioEventos;
+    }
+
+    public List<Double> getData(){
+        return data;
     }
 
     /**
@@ -70,13 +74,12 @@ public class CusumSpark implements Runnable {
         return (regresion.get(1)*(data.length-1));
     }
 
-    private double[] generaDatosLambda(double l0, double b0, double b1, int lon, int lon2){
+    private List<Double> generaDatosLambda(double l0, double b0, double b1, int lon, int lon2){
 
         Tarea tarea;
         double dato;
         boolean veneno;
-        data = new double[lon+lon2+1];
-        data[0] = 0d;
+        data = new ArrayList<>();
         dataIndex = 1;
 
         if (topico == null) {
@@ -102,7 +105,7 @@ public class CusumSpark implements Runnable {
             veneno = tarea.isEsVeneno();
 
             while( !veneno ) {
-                data[dataIndex] = dato;
+                data.add(dato);
                 dataIndex ++;
 
                 do {
@@ -116,7 +119,7 @@ public class CusumSpark implements Runnable {
 
     }
 
-    private int detectaCambio(int lont, double l0, double b0, double threshold, double[] data) {
+    private int detectaCambio(int lont, double l0, double b0, double threshold, List<Double> data) {
         // Detecta que ha ocurrido un cambio
         double lbefore, la, lb, s;
         double[] pa = new double[lont+1];
@@ -137,9 +140,9 @@ public class CusumSpark implements Runnable {
             lbefore = l0 + i * b0; // Lambda si no hay cambio
             if ( lbefore < 0 ) lbefore = 0.0;
             la = lbefore + l0/2 + b0*2; //Un poco despues de lbefore. Lo que suma debe ser constante
-            if (FuncionesAuxiliares.poissonFunction(data[i], lbefore) != 0) { //FIXME esto no está en R
+            if (FuncionesAuxiliares.poissonFunction(data.get(i-1), lbefore) != 0) { //FIXME esto no está en R
                 // s <- log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
-                s = myPos(data[i], lbefore, la);
+                s = myPos(data.get(i-1), lbefore, la);
                 // p[i] <- p[i-1] + log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
                 pa[i] = pa[i - 1] + s;
                 if ((ga[i - 1] + s) < 0) {
@@ -152,7 +155,7 @@ public class CusumSpark implements Runnable {
                 if (lb < 0) {
                     lb = 0;
                 }
-                s = myPos(data[i], lbefore, lb);
+                s = myPos(data.get(i-1), lbefore, lb);
                 pb[i] = pb[i - 1] + s;
                 if ((gb[i - 1] + s) < 0) {
                     gb[i] = 0;
@@ -178,17 +181,17 @@ public class CusumSpark implements Runnable {
         return alarmi;
     }
 
-    private List<Double> calculaVelocidad(double lv, int lon, double lfin, int lon2, int nven, double[] data){
+    private List<Double> calculaVelocidad(double lv, int lon, double lfin, int lon2, int nven, List<Double> data){
         double[][] mp = new double[nven+1][lon2+1];
         for (int k = 1; k <= nven; k++) {
             double lk = lv + (lfin - lv) / nven;
-            mp[k][1] = myPos(data[lon+1], lv, lk);
+            mp[k][1] = myPos(data.get(lon), lv, lk);
         }
         for (int i = 2; i <= lon2; i++) {
             for (int k = 1; k <= nven; k++) {
                 double lk = lv + k * (lfin - lv) / nven; //k+1
                 double lk0 = lv + (k - 1) * (lfin - lv) / nven; //k
-                mp[k][i] = mp[k][i - 1] + myPos(data[i + lon], lk0, lk);
+                mp[k][i] = mp[k][i - 1] + myPos(data.get(i+lon-1), lk0, lk);
             }
         }
         // Regresion de los datos
@@ -206,7 +209,6 @@ public class CusumSpark implements Runnable {
             }
             d[i] = minindex;
         }
-        // FIXME en el de Gauss compueba minimos y la regresion la hace con mus/lambdas ~ minimos
         return FuncionesAuxiliares.regLineal(d, x);
     }
 
@@ -220,7 +222,7 @@ public class CusumSpark implements Runnable {
      * @param data
      * @return S
      */
-    private int calculaPuntoCambio(int lon, int lon2, double l0, double b0, double velocidad, double[] data){
+    private int calculaPuntoCambio(int lon, int lon2, double l0, double b0, double velocidad, List<Double> data){
         int first = 1;
         int last = lon + lon2;
         int lont = last - first;
@@ -237,7 +239,7 @@ public class CusumSpark implements Runnable {
                 if (lsecond < 0){
                     lsecond = 0;
                 }
-                double s = myPos(data[k], lfirst, lsecond);
+                double s = myPos(data.get(k-1), lfirst, lsecond);
                 S[i-first] = S[i-first] + s;
             }
         }
@@ -273,16 +275,15 @@ public class CusumSpark implements Runnable {
         System.out.println(output);
     }
 
-    private List<Double> estimaPuntoCambio(double l0, double b0, int lon, double b1, int lon2, int nven, double threshold, double[] data){
+    private List<Double> estimaPuntoCambio(double l0, double b0, int lon, double b1, int lon2, int nven, double threshold, List<Double> data){
         int lont = lon + lon2;
         int cambio = detectaCambio(lont, l0, b0, threshold, data);
         List<Double> res = new ArrayList<>();
         if (cambio >= lon){
-            // FIXME En el de Gaus calcula la velocidad de forma distinta
             double lv = l0 + b0 * lon;
             double[] datav3 = new double[lon2+1];
             for (int i = 1; i <= lon2; i++) {
-                datav3[i] = data[lon + i];
+                datav3[i] = data.get(lon+i-1);
             }
             double lfin = lv + v3(datav3);
             List<Double> regresion = calculaVelocidad(lv, lon, lfin, lon2, nven, data);
@@ -322,14 +323,13 @@ public class CusumSpark implements Runnable {
 
     private void unExperimento(double l0, double b0, double b1, int lon, int lon2, int nven, double threshold, int exp){
         int i = 1;
-        double[] data;
         double[] velocidades = new double[exp+1];
         double[] time = new double[exp+1];
         List<Double> res;
         int errorVel = 0;
         int errorArl = 0;
         while (i <= exp) {
-            data = generaDatosLambda(l0, b0, b1, lon, lon2);
+            generaDatosLambda(l0, b0, b1, lon, lon2);
             res = estimaPuntoCambio(l0, b0, lon, b1, lon2, nven, threshold, data);
             if (res.get(0) == -1){
                 errorArl++;
