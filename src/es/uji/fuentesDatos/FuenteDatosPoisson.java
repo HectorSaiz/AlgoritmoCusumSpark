@@ -45,9 +45,9 @@ public class FuenteDatosPoisson implements Runnable {
             l = l0 + b0 * lon + b1 * (i - lon);
             dato = rdg.nextPoisson(l);
             zonaIntercambioEventos.insertaTarea( new Tarea(dato, false) );
-//            try {
-//                Thread.sleep(tiempoEspera);
-//            } catch (InterruptedException e) { }
+            try {
+                Thread.sleep(tiempoEspera);
+            } catch (InterruptedException e) { }
         }
         zonaIntercambioEventos.insertaTarea( new Tarea(0.0, true) );
     }

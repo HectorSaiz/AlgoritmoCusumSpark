@@ -90,7 +90,7 @@ public class CusumSpark implements Runnable {
                 }
             }
 
-            long tiempoEspera = 1;
+            long tiempoEspera = 1000;
             FuenteDatosPoisson eventSource = new FuenteDatosPoisson(tiempoEspera, l0, b0, b1, lon, lon2, zonaIntercambioEventos);
             t = new Thread(eventSource);
             t.start();
