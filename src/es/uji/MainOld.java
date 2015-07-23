@@ -32,9 +32,9 @@ public class MainOld {
             conectorTwitter = new FuenteDatosTwitter( args, zonaIntercambio );
             twitter = new Thread( conectorTwitter );
             twitter.start();
-            cusumSpark = new CusumSpark( "twitter", zonaIntercambio );
+            cusumSpark = new CusumSpark( true, zonaIntercambio );
         } else {
-            cusumSpark = new CusumSpark( zonaIntercambio );
+            cusumSpark = new CusumSpark( false, zonaIntercambio );
         }
         cusum = new Thread(cusumSpark);
         cusum.start();

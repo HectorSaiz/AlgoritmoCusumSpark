@@ -23,7 +23,7 @@ public class Main extends Application {
     private Stage primaryStage;   // Escenario principal
     private Parent rootLayout;    // layoutThread cusum, twitter;
     private Thread cusum, datos;
-    private CusumSpark cusumSpark;
+    private CusumSpark cusumSpark = new CusumSpark();
     private Runnable fuenteDatos;
     private final ZonaIntercambioEventos zonaIntercambio = new ZonaIntercambioEventos();
 
@@ -66,7 +66,7 @@ public class Main extends Application {
                     Controller controller = loader.getController();
                     if ( controller != null ) {
                         controller.setMain( m );
-                        controller.setCusum( cusumSpark );
+                        cusumSpark.setController(controller);
                     }
 
                     Scene scene = new Scene(rootLayout);
@@ -84,21 +84,23 @@ public class Main extends Application {
         fuenteDatos = new FuenteDatosTwitter( args, zonaIntercambio );
         datos = new Thread( fuenteDatos );
         datos.start();
-        cusumSpark = new CusumSpark( "twitter", zonaIntercambio );
+        cusumSpark.useTwitter(true);
+        cusumSpark.setzonaIntercambio(zonaIntercambio);
     }
 
     public void setPoisson(){
-        cusumSpark = new CusumSpark( zonaIntercambio );
+        cusumSpark.setzonaIntercambio(zonaIntercambio);
+        cusumSpark.useTwitter(false);
     }
 
     public void startCusum(){
         cusum = new Thread(cusumSpark);
         cusum.start();
-        try {
-            cusum.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            cusum.join();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
     }
 
     public static void main(String[] args) {

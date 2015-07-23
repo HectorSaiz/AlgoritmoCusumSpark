@@ -3,6 +3,7 @@ package es.uji.cusumSpark;
 import es.uji.fuentesDatos.FuenteDatosPoisson;
 import es.uji.fuentesDatos.Tarea;
 import es.uji.fuentesDatos.ZonaIntercambioEventos;
+import es.uji.view.Controller;
 import org.apache.commons.math3.random.RandomDataGenerator;
 
 import java.util.ArrayList;
@@ -21,27 +22,44 @@ public class CusumSpark implements Runnable {
     private static double[] arrayThreshold = new double[] {-1.0, 7, 9.8, 14.4};  // Array con los posibles valores umbral para los experimentos
     private static int[] arrayLambda = new int[] {-1, 5, 10, 20};  // Array con las posibles lambdas a tomar en los experimentos
     private static ArrayList<Double> data; // TODO pasar a arraylist con tamaño dinámico
-    private static int dataIndex; // TODO eliminar al pasar a arrayList
+    private static int dataIndex; // Ahora sirve para la grafica
     private Thread t;
     private RandomDataGenerator rdg;
-    private String topico;
+    private boolean twitter;
     private ZonaIntercambioEventos zonaIntercambioEventos;
+    private Controller controller;
 
 //    private static int lon = 100;  // Cantidad de números antes de introducir en cambio
 //    private static int lon2 = 50;  // Cantidad de números después de introducir el cambio
 //    private static int exp = 10000;  // Cantidad de experimentos a realizar
 //    private static int nven = 15;  // Cantidad de ventanas a utilizar
 
+    public CusumSpark(){
+        super();
+    }
+
     public CusumSpark( ZonaIntercambioEventos zonaIntercambioEventos) {
         super();
-        this.topico = null;
+        this.twitter = false;
         this.zonaIntercambioEventos = zonaIntercambioEventos;
     }
 
-    public CusumSpark(String topico, ZonaIntercambioEventos zonaIntercambioEventos) {
+    public CusumSpark(boolean twitter, ZonaIntercambioEventos zonaIntercambioEventos) {
         super();
-        this.topico = topico;
+        this.twitter = twitter;
         this.zonaIntercambioEventos = zonaIntercambioEventos;
+    }
+
+    public void setController(Controller controller){
+        this.controller = controller;
+    }
+
+    public void setzonaIntercambio(ZonaIntercambioEventos zonaIntercambio){
+        this.zonaIntercambioEventos = zonaIntercambio;
+    }
+
+    public void useTwitter(boolean twitter){
+        this.twitter = twitter;
     }
 
     public List<Double> getData(){
@@ -79,8 +97,9 @@ public class CusumSpark implements Runnable {
         double dato;
         boolean veneno;
         data = new ArrayList<>();
+        dataIndex = 1;
 
-        if (topico == null) {
+        if (!twitter) {
 
             if ( t!= null && t.isAlive() ) {
                 try {
@@ -104,7 +123,8 @@ public class CusumSpark implements Runnable {
 
             while( !veneno ) {
                 data.add(dato);
-
+                controller.update(dato);
+                dataIndex++;
                 do {
                     tarea = zonaIntercambioEventos.dameTarea();
                 } while (tarea == null);

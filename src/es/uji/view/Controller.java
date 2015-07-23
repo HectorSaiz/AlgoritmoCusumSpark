@@ -11,7 +11,6 @@ import es.uji.cusumSpark.CusumSpark;
 public abstract class Controller {
 	
 	protected Main mainApp;         // Main
-	protected CusumSpark cusum;
 	
 	/**
 	 * Setter del main y getor de fuentes
@@ -21,6 +20,6 @@ public abstract class Controller {
 		this.mainApp = mainApp;
 	}
 
-	public void setCusum(CusumSpark cusum) { this.cusum = cusum; }
+	public abstract void update(Double data);
 	
 }

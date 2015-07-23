@@ -1,5 +1,6 @@
 package es.uji.view;
 
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -8,9 +9,10 @@ import javafx.fxml.FXML;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by root on 23/07/15.
@@ -19,6 +21,8 @@ public class VentanaPrincipalController extends Controller{
 
     final ToggleGroup group = new ToggleGroup();
     private ObservableList<ScatterChart.Series<Integer,Double>> data = FXCollections.observableArrayList();
+    private ScatterChart.Series<Integer,Double> mySerie = new ScatterChart.Series();
+    private List<Double> rawData = new ArrayList<>();
 
     @FXML
     private RadioButton simulationButton;
@@ -35,7 +39,21 @@ public class VentanaPrincipalController extends Controller{
     private void initialize(){
         simulationButton.setToggleGroup(group);
         twitterButton.setToggleGroup(group);
+        data.add(mySerie);
         dataChart.setData(data);
+        Timer timer = new Timer();
+
+        timer.schedule(new TimerTask() {
+            public void run() {
+                Platform.runLater(new Runnable() {
+                    public void run() {
+                        //System.out.println("Hola");
+                        updateChart();
+                    }
+                });
+            }
+        }, 0, 1000);
+
     }
 
     public void setTwitterCusum(){
@@ -48,22 +66,16 @@ public class VentanaPrincipalController extends Controller{
 
     public void start(){
         mainApp.startCusum();
-        while(true){
-            try{
-                Thread.sleep(1000);
-                updateChart();
-            }catch (InterruptedException e){
-                e.printStackTrace();
-            }
+    }
+
+    private void updateChart(){
+        mySerie.getData().clear();
+        for ( Double elem : rawData){
+            mySerie.getData().add(new ScatterChart.Data(rawData.indexOf(elem), elem));
         }
     }
-    private void updateChart(){
-        ScatterChart.Series<Integer,Double> mySerie = new ScatterChart.Series();
-        List<Double> cusumData = cusum.getData();
-        for ( Double elem : cusumData ){
-            mySerie.getData().add(new ScatterChart.Data(cusumData.indexOf(elem),elem));
-        }
-        data.add(mySerie);
 
+    public void update(Double data){
+        rawData.add(data);
     }
 }
