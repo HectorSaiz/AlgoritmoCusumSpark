@@ -13,15 +13,12 @@ import java.util.List;
  */
 public class CusumSpark implements Runnable {
 
-
-    // TODO preguntar ¿dejamos estos atributos y que las funciones los puedan utilizar libremente o mejor los hacemos locales y que las funciones se los pasen entre sí?
-
     private static double[] arrayVelA = new double[] {-1.0, 0, 0.05 ,0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1, 1.5, 2, 2.5, 3 }; // Array de velocidades de las rectas, es decir de las pendientes
     private static double[] arrayVel = new double[] {-1.0, 3, 2, 1.5, 1, 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.05, 0.0}; // Array de velocidades de las rectas, es decir de las pendientes
     private static double[] arrayThreshold = new double[] {-1.0, 7, 9.8, 14.4};  // Array con los posibles valores umbral para los experimentos
     private static int[] arrayLambda = new int[] {-1, 5, 10, 20};  // Array con las posibles lambdas a tomar en los experimentos
-    private static double[] data; // TODO pasar a arraylist con tamaño dinámico
-    private static int dataIndex; // TODO eliminar al pasar a arrayList
+    private static double[] data;
+    private static int dataIndex;
     private Thread t;
     private RandomDataGenerator rdg;
     private String topico;
@@ -31,7 +28,6 @@ public class CusumSpark implements Runnable {
 //    private static int lon2 = 50;  // Cantidad de números después de introducir el cambio
 //    private static int exp = 10000;  // Cantidad de experimentos a realizar
 //    private static int nven = 15;  // Cantidad de ventanas a utilizar
-//    private static Poisson poisson = new Poisson();  Clase encargada de proporcionar números aleatoriamente siguiento una distribución de Poisson
 
     public CusumSpark( ZonaIntercambioEventos zonaIntercambioEventos) {
         super();
@@ -147,7 +143,6 @@ public class CusumSpark implements Runnable {
                 } else {
                     ga[i] = ga[i - 1] + s;
                 }
-                // FIXME NUEVO
                 lb = lbefore - l0/2 -b0*2;
                 if (lb < 0) {
                     lb = 0;
@@ -206,7 +201,6 @@ public class CusumSpark implements Runnable {
             }
             d[i] = minindex;
         }
-        // FIXME en el de Gauss compueba minimos y la regresion la hace con mus/lambdas ~ minimos
         return FuncionesAuxiliares.regLineal(d, x);
     }
 
@@ -244,7 +238,6 @@ public class CusumSpark implements Runnable {
         double auxmax = Double.NEGATIVE_INFINITY;
         int maxindex = 1;
         for (int i=1; i< S.length-1; i++){
-            //System.out.println("S"+i+" "+S[i]);
             if ( auxmax < S[i]){
                 auxmax = S[i];
                 maxindex = i;
@@ -255,15 +248,6 @@ public class CusumSpark implements Runnable {
 
     private void muestraResultadosExperimentos(double threshold, double l0, double b0, double b1, double[] time, double[] velocidades, int errorArl, int errorVelocidad) {
         String output;
-
-//        List arlMC = new ArrayList<Double>();
-//        for (double v1 : arl) {
-//            if (v1 > 0) arlMC.add(v1);
-//        }
-//        double[] arlMayoresCero = new double[arlMC.size()];
-//        for (int i =0; i < arlMC.size(); i++){
-//            arlMayoresCero[i] = (double) arlMC.get(i);
-//        }
 
         output = "" + threshold + " " + l0 + " " + b0 + " " + b1
                 + " " + FuncionesAuxiliares.mean(velocidades) + " " + " " + FuncionesAuxiliares.sdError(velocidades)
@@ -344,28 +328,6 @@ public class CusumSpark implements Runnable {
         muestraResultadosExperimentos(threshold, l0, b0, b1, time, velocidades, errorArl, errorVel);
     }
 
-    /**
-     * Detecta cuando se ha producido un cambio en la tendencia
-     * y calcula en punto en el que se ha producido dicho cambio
-     */
-//    public static void realizaExperimentos() {
-//        double threshold, l0, b0, b1;
-//        for (int n = 1; n < arrayLambda.length; n++) {
-//            threshold = arrayThreshold[n]; // Establece el umbral
-//            l0 = arrayLambda[n]; // Establece la lambda inicial
-//
-//            for (int indexb0 = 1; indexb0 < arrayVelA.length - 1; indexb0++) {
-//                b0 = arrayVelA[indexb0];
-//
-////            for (int threshold : arrayThreshold)
-//                for (int indexb1 = indexb0 + 1; indexb1 < arrayVelA.length; indexb1++) {
-//
-//                    b1 = arrayVelA[indexb1];
-//                    unExperimento(l0, b0, b1, 100, 50, 15, threshold, 10000);
-//                }
-//            }
-//        }
-//    }
 
     @Override
     public void run() {

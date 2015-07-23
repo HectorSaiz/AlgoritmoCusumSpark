@@ -32,22 +32,12 @@ public class Persister implements Processor {
         createClient();
     }
 
-//    private void search() {
-//        GetResponse response = client.prepareGet("twitter", "tweet", "1")
-//                .setOperationThreaded(false)
-//                .execute()
-//                .actionGet();
-//        System.out.println(response.getId());
-//    }
 
     private void createClient() {
         Node node = NodeBuilder.nodeBuilder().node();
         client = node.client();
     }
 
-//    public void closeClient()  {
-//        client.close();
-//    }
 
 //    public void processTweet(final String tweet) {
 //        try {
@@ -77,7 +67,7 @@ public class Persister implements Processor {
                         .setSource(jsonStatus)
                         .execute()
                         .actionGet();
-                System.out.println(status.getText());
+//                System.out.println(status.getText());
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
