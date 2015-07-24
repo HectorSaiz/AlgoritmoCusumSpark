@@ -59,7 +59,7 @@ public class VentanaPrincipalController extends Controller {
     }
 
     public void setTwitterCusum(){
-        //mainApp.setTwitter(topicTextField.getText());
+        mainApp.setTwitter(topicTextField.getText());
     }
 
     public void setPoissonCusum(){

@@ -20,11 +20,11 @@ public class FuenteDatosTwitter implements Runnable{
     private boolean bufferInicializado;
 
     private ProcessorTweet processor;
-    private String [] args;
+    private String topico;
     private ZonaIntercambioEventos zonaIntercambio;
 
-    public FuenteDatosTwitter( String [] args, ZonaIntercambioEventos zonaIntercambioEventos ) {
-        this.args = args;
+    public FuenteDatosTwitter( String topico, ZonaIntercambioEventos zonaIntercambioEventos ) {
+        this.topico = topico;
         this.zonaIntercambio = zonaIntercambioEventos;
         this.totales = 0;
         this.bufferInicializado = false;
@@ -47,9 +47,8 @@ public class FuenteDatosTwitter implements Runnable{
         return totales;
     }
 
-    private void starListener(String[] topics) {
-        for(String topic: topics)
-            System.out.println(topic);
+    private void starListener(String topico) {
+        System.out.println(topico);
 
         ConfigurationBuilder cb = new ConfigurationBuilder();
         cb.setJSONStoreEnabled(true);
@@ -98,7 +97,7 @@ public class FuenteDatosTwitter implements Runnable{
         twitterStream.addListener(listener);
         FilterQuery filterQuery = new FilterQuery();
 //        filterQuery.track(new String[] {"#votaPP", "#TrabajarHacerCrecer", "#PP"});
-        filterQuery.track(topics);
+        filterQuery.track(new String[]{topico});
 //        filterQuery.track(new String[]{"football", "world cup", "#worldcup", "mundial"});
 //        filterQuery.language(new String[] {"en"});
 //        filterQuery.track(new String[]{"fuego", "llamas", "humo", "incendio"});
@@ -131,15 +130,10 @@ public class FuenteDatosTwitter implements Runnable{
 
     @Override
     public void run() {
-
-        String[] topics = new String[args.length];
-        for(int i = 0; i < args.length; i++)
-            topics[i] = args[i];
-
         System.out.println("Empieza la fiesta!!!!" + new Date());
         createProcessor();
         loadProperties();
-        starListener(topics);
+        starListener(topico);
 
     }
 }

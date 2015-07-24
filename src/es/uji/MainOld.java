@@ -29,7 +29,7 @@ public class MainOld {
 
         if (args.length == 1){
 
-            conectorTwitter = new FuenteDatosTwitter( args, zonaIntercambio );
+            conectorTwitter = new FuenteDatosTwitter( args[0], zonaIntercambio );
             twitter = new Thread( conectorTwitter );
             twitter.start();
             cusumSpark = new CusumSpark( true, zonaIntercambio );
