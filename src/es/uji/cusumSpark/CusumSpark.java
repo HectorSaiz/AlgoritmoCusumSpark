@@ -387,21 +387,21 @@ public class CusumSpark implements Runnable {
 
     @Override
     public void run() {
-        double threshold, l0, b0, b1;
-        for (int n = 1; n < arrayLambda.length; n++) {
-            threshold = arrayThreshold[n]; // Establece el umbral
-            l0 = arrayLambda[n]; // Establece la lambda inicial
-
-            for (int indexb0 = 1; indexb0 < arrayVelA.length - 1; indexb0++) {
-                b0 = arrayVelA[indexb0];
+        double threshold = 7, l0 = 5, b0 = 0, b1 = 3;
+//        for (int n = 1; n < arrayLambda.length; n++) {
+//            threshold = arrayThreshold[n]; // Establece el umbral
+//            l0 = arrayLambda[n]; // Establece la lambda inicial
+//
+//            for (int indexb0 = 1; indexb0 < arrayVelA.length - 1; indexb0++) {
+//                b0 = arrayVelA[indexb0];
 
 //            for (int threshold : arrayThreshold)
-                for (int indexb1 = indexb0 + 1; indexb1 < arrayVelA.length; indexb1++) {
-
-                    b1 = arrayVelA[indexb1];
-                    unExperimento(l0, b0, b1, 100, 50, 15, threshold, 10000);
-                }
-            }
-        }
+//                for (int indexb1 = indexb0 + 1; indexb1 < arrayVelA.length; indexb1++) {
+//
+//                    b1 = arrayVelA[indexb1];
+                    unExperimento(l0, b0, b1, 100, 50, 15, threshold, 1);
+//                }
+//            }
+//        }
     }
 }
