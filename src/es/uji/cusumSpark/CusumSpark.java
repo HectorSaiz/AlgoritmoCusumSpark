@@ -123,13 +123,13 @@ public class CusumSpark implements Runnable {
 
             while( !veneno ) {
                 data.add(dato);
+                System.out.println(dato);
                 controller.update(dato);
                 dataIndex++;
                 do {
                     tarea = zonaIntercambioEventos.dameTarea();
                 } while (tarea == null);
                 dato = tarea.getCantidadEventos();
-                System.out.println(dato);
                 veneno = tarea.isEsVeneno();
             }
 

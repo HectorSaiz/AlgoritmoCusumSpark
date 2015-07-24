@@ -84,27 +84,24 @@
          </children>
       </GridPane>
    </top>
-   <left>
+   <center>
       <GridPane BorderPane.alignment="CENTER">
         <columnConstraints>
           <ColumnConstraints hgrow="SOMETIMES" />
         </columnConstraints>
         <rowConstraints>
-          <RowConstraints vgrow="SOMETIMES" />
+          <RowConstraints />
         </rowConstraints>
          <children>
             <ScatterChart fx:id="dataChart" title="Datos">
               <xAxis>
-                <CategoryAxis side="BOTTOM" />
+                <NumberAxis side="BOTTOM" />
               </xAxis>
               <yAxis>
                 <NumberAxis side="LEFT" />
               </yAxis>
-               <GridPane.margin>
-                  <Insets bottom="10.0" left="30.0" right="10.0" top="10.0" />
-               </GridPane.margin>
             </ScatterChart>
          </children>
       </GridPane>
-   </left>
+   </center>
 </BorderPane>

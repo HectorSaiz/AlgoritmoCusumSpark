@@ -9,10 +9,8 @@ import javafx.fxml.FXML;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+
+import java.util.*;
 
 /**
  * Created by root on 23/07/15.
@@ -22,7 +20,7 @@ public class VentanaPrincipalController extends Controller{
     final ToggleGroup group = new ToggleGroup();
     private ObservableList<XYChart.Data<Integer,Double>> data = FXCollections.observableArrayList();
     final ScatterChart.Series<Integer,Double> mySerie = new XYChart.Series();
-    private List<Double> rawData = new ArrayList<>();
+    private Vector<Double> rawData = new Vector<>();
 
     @FXML
     private RadioButton simulationButton;
@@ -39,6 +37,7 @@ public class VentanaPrincipalController extends Controller{
     private void initialize(){
         simulationButton.setToggleGroup(group);
         twitterButton.setToggleGroup(group);
+        mySerie.setName("tweets");
         mySerie.setData(data);
         dataChart.getData().add(mySerie);
         Timer timer = new Timer();
