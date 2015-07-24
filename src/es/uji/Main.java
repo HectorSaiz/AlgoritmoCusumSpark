@@ -7,11 +7,13 @@ import es.uji.fuentesDatos.FuenteDatosTwitter;
 import es.uji.fuentesDatos.ZonaIntercambioEventos;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import es.uji.view.Controller;
+import javafx.stage.WindowEvent;
 
 /**
  * Main que arranca la interfaz grafica
@@ -66,6 +68,7 @@ public class Main extends Application {
                     Controller controller = loader.getController();
                     if ( controller != null ) {
                         controller.setMain( m );
+                        controller.setZonaIntercambio( zonaIntercambio );
                         cusumSpark.setController(controller);
                     }
 
@@ -73,8 +76,13 @@ public class Main extends Application {
                     primaryStage.setScene(scene);
                     primaryStage.setMaximized(true);
                     primaryStage.show();
+                    primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
+                        public void handle(WindowEvent we) {
+                            System.exit(0);
+                        }
+                    });
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    //e.printStackTrace();
                 }
             }
         });

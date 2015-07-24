@@ -134,7 +134,6 @@ public class CusumSpark implements Runnable {
             }
 
             return data;
-
     }
 
     private int detectaCambio(int lont, double l0, double b0, double threshold, List<Double> data) {
@@ -387,7 +386,7 @@ public class CusumSpark implements Runnable {
 
     @Override
     public void run() {
-        double threshold = 7, l0 = 5, b0 = 0, b1 = 3;
+        double threshold = 7, l0 = 5, b0 = 0, b1 = 0.05;
 //        for (int n = 1; n < arrayLambda.length; n++) {
 //            threshold = arrayThreshold[n]; // Establece el umbral
 //            l0 = arrayLambda[n]; // Establece la lambda inicial
