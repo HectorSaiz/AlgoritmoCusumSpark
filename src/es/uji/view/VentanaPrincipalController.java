@@ -15,7 +15,7 @@ import java.util.*;
 /**
  * Created by root on 23/07/15.
  */
-public class VentanaPrincipalController extends Controller{
+public class VentanaPrincipalController extends Controller {
 
     final ToggleGroup group = new ToggleGroup();
     private ObservableList<XYChart.Data<Integer,Double>> data = FXCollections.observableArrayList();
@@ -48,6 +48,9 @@ public class VentanaPrincipalController extends Controller{
                     public void run() {
 //                        System.out.println("Hola");
                         updateChart();
+//                        mySerie.setData(data);
+//                        dataChart.getData().removeAll();
+//                        dataChart.getData().add(mySerie);
                     }
                 });
             }
@@ -68,9 +71,14 @@ public class VentanaPrincipalController extends Controller{
     }
 
     private void updateChart(){
-        for ( Double elem : rawData){
-            data.add(new XYChart.Data(rawData.indexOf(elem), elem));
+
+        for (int i = 0; i < rawData.size(); i++) {
+            data.add(new XYChart.Data(i, rawData.get(i)));
         }
+
+//        for ( Double elem : rawData){
+//            data.add(new XYChart.Data(rawData.indexOf(elem), elem));
+//        }
     }
 
     public void update(Double data){
