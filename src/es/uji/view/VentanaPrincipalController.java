@@ -5,10 +5,12 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyEvent;
 
 import java.util.*;
 
@@ -35,13 +37,24 @@ public class VentanaPrincipalController extends Controller {
 
     @FXML
     private void initialize(){
+        startButton.setDisable(true);
+        twitterButton.setDisable(true);
         simulationButton.setToggleGroup(group);
         twitterButton.setToggleGroup(group);
         mySerie.setName("tweets");
         mySerie.setData(data);
         dataChart.getData().add(mySerie);
-        Timer timer = new Timer();
 
+        topicTextField.setOnKeyReleased(new EventHandler<KeyEvent>(){
+            @Override
+            public void handle(KeyEvent keyEvent){
+                if (topicTextField.getText() != ""){
+                    twitterButton.setDisable(false);
+                }
+            }
+        });
+
+        Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             public void run() {
                 Platform.runLater(new Runnable() {
@@ -56,10 +69,12 @@ public class VentanaPrincipalController extends Controller {
 
     public void setTwitterCusum(){
         mainApp.setTwitter(topicTextField.getText());
+        startButton.setDisable(false);
     }
 
     public void setPoissonCusum(){
         mainApp.setPoisson();
+        startButton.setDisable(false);
     }
 
     public void start(){

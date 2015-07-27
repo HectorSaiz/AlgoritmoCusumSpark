@@ -2,6 +2,7 @@ package es.uji.view;
 
 import es.uji.Main;
 import es.uji.cusumSpark.CusumSpark;
+import es.uji.fuentesDatos.ZonaIntercambioEventos;
 
 /**
  * Clase controlador
@@ -11,6 +12,7 @@ import es.uji.cusumSpark.CusumSpark;
 public abstract class Controller {
 	
 	protected Main mainApp;         // Main
+	protected ZonaIntercambioEventos zonaIntercambio;
 	
 	/**
 	 * Setter del main y getor de fuentes
@@ -19,6 +21,8 @@ public abstract class Controller {
 	public void setMain(Main mainApp){
 		this.mainApp = mainApp;
 	}
+
+	public void setZonaIntercambio(ZonaIntercambioEventos zonaIntercambio){ this.zonaIntercambio = zonaIntercambio; }
 
 	public abstract void update(Double data);
 	
