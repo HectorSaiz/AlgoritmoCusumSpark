@@ -77,6 +77,7 @@ public class FuenteDatosTwitter implements Runnable{
             @Override
             public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
 //                System.out.println("Got track limitation notice:" + numberOfLimitedStatuses);
+
             }
 
             @Override
