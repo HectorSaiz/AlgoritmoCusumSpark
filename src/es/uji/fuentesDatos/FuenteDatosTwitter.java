@@ -97,7 +97,9 @@ public class FuenteDatosTwitter implements Runnable{
         twitterStream.addListener(listener);
         FilterQuery filterQuery = new FilterQuery();
 //        filterQuery.track(new String[] {"#votaPP", "#TrabajarHacerCrecer", "#PP"});
-        filterQuery.track(new String[]{topico});
+        // TODO
+        // filterQuery.track(new String[]{topico});
+        filterQuery.track(new String[]{"realmadrid", "#realmadrid", "#halamadrid"," #ManchesterCity", "#ICC2015", "real madrid", "real", "madrid", "manchestercity", "manchester city"});
 //        filterQuery.track(new String[]{"football", "world cup", "#worldcup", "mundial"});
 //        filterQuery.language(new String[] {"en"});
 //        filterQuery.track(new String[]{"fuego", "llamas", "humo", "incendio"});

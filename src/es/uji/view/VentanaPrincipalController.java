@@ -20,7 +20,7 @@ public class VentanaPrincipalController extends Controller {
     final ToggleGroup group = new ToggleGroup();
     private ObservableList<XYChart.Data<Integer,Double>> data = FXCollections.observableArrayList();
     final ScatterChart.Series<Integer,Double> mySerie = new XYChart.Series();
-    private Vector<Double> rawData = new Vector<>();
+    private Stack<Double> rawData = new Stack<>();
 
     @FXML
     private RadioButton simulationButton;
@@ -46,11 +46,7 @@ public class VentanaPrincipalController extends Controller {
             public void run() {
                 Platform.runLater(new Runnable() {
                     public void run() {
-//                        System.out.println("Hola");
                         updateChart();
-//                        mySerie.setData(data);
-//                        dataChart.getData().removeAll();
-//                        dataChart.getData().add(mySerie);
                     }
                 });
             }
@@ -72,9 +68,15 @@ public class VentanaPrincipalController extends Controller {
 
     private void updateChart(){
 
-        for (int i = 0; i < rawData.size(); i++) {
-            data.add(new XYChart.Data(i, rawData.get(i)));
+        try {
+            data.add(new XYChart.Data(data.size(), rawData.pop()));
+        } catch (EmptyStackException e) {
+//            System.out.println("No ha iniciado");
         }
+
+//        for (int i = 0; i < rawData.size(); i++) {
+//            data.add(new XYChart.Data(i, rawData.get(i)));
+//        }
 
 //        for ( Double elem : rawData){
 //            data.add(new XYChart.Data(rawData.indexOf(elem), elem));
