@@ -13,6 +13,7 @@ public abstract class Controller {
 	
 	protected Main mainApp;         // Main
 	protected ZonaIntercambioEventos zonaIntercambio;
+	protected CusumSpark cusum;
 	
 	/**
 	 * Setter del main y getor de fuentes
@@ -24,6 +25,16 @@ public abstract class Controller {
 
 	public void setZonaIntercambio(ZonaIntercambioEventos zonaIntercambio){ this.zonaIntercambio = zonaIntercambio; }
 
-	public abstract void update(Double data);
+	public void setCusum(CusumSpark cusum){
+		this.cusum = cusum;
+	}
+
+	public abstract void update(double data);
+
+	public abstract void updateDecisions(double pa, double ga, double pb, double gb);
+
+	public abstract void updateAlarma(int alarma);
+
+	public abstract void updateCambio(double cambio);
 	
 }

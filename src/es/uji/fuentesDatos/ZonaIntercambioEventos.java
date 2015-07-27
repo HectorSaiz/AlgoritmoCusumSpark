@@ -13,6 +13,7 @@ public class ZonaIntercambioEventos extends Thread {
     public ZonaIntercambioEventos() {
         this.colaTareas = new LinkedBlockingQueue<Tarea>();
     }
+    private static int fase;
 
     public void insertaTarea(Tarea tarea) {
         try {
@@ -35,5 +36,13 @@ public class ZonaIntercambioEventos extends Thread {
             return null;
         }
 
+    }
+
+    public void setFase(int fase){
+        this.fase = fase;
+    }
+
+    public int getFase(){
+        return fase;
     }
 }

@@ -67,8 +67,10 @@ public class Main extends Application {
 
                     Controller controller = loader.getController();
                     if ( controller != null ) {
+                        zonaIntercambio.setFase(1);
                         controller.setMain( m );
                         controller.setZonaIntercambio( zonaIntercambio );
+                        controller.setCusum(cusumSpark);
                         cusumSpark.setController(controller);
                     }
 

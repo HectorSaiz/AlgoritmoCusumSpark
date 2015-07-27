@@ -28,6 +28,7 @@ public class CusumSpark implements Runnable {
     private boolean twitter;
     private ZonaIntercambioEventos zonaIntercambioEventos;
     private Controller controller;
+    private static int inicio, medio, fin;
 
 //    private static int lon = 100;  // Cantidad de números antes de introducir en cambio
 //    private static int lon2 = 50;  // Cantidad de números después de introducir el cambio
@@ -64,6 +65,10 @@ public class CusumSpark implements Runnable {
 
     public List<Double> getData(){
         return data;
+    }
+
+    public void setMedio(int i){
+        medio = i;
     }
 
     /**
@@ -384,9 +389,147 @@ public class CusumSpark implements Runnable {
 //        }
 //    }
 
+    private void cusumGUI(double l0, double b0, double b1, int lon, int lon2, int nven){
+        Tarea tarea;
+        double dato;
+        int fase;
+        double lambda0 = 0d, beta0 = 0d;
+        double threshold = 7;
+        data = new ArrayList<>();
+        dataIndex = 0;
+
+        if (!twitter) {
+
+            if ( t!= null && t.isAlive() ) {
+                try {
+                    t.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            long tiempoEspera = 1000;
+            FuenteDatosPoisson eventSource = new FuenteDatosPoisson(tiempoEspera, l0, b0, b1, lon, lon2, zonaIntercambioEventos);
+            t = new Thread(eventSource);
+            t.start();
+        }
+
+        do {
+            tarea = zonaIntercambioEventos.dameTarea();
+        } while (tarea == null);
+        dato = tarea.getCantidadEventos();
+        fase = zonaIntercambioEventos.getFase();
+
+        while( fase == 1 ) {
+            data.add(dato);
+            System.out.println(dato);
+            controller.update(dato);
+            dataIndex++;
+            do {
+                tarea = zonaIntercambioEventos.dameTarea();
+            } while (tarea == null);
+            dato = tarea.getCantidadEventos();
+            fase = zonaIntercambioEventos.getFase();
+        }
+
+        if( fase == 2 ){
+            inicio = dataIndex;
+            List<Double> aux = new ArrayList<>();
+            for ( double i = 1; i <= inicio; i++){
+                aux.add(i);
+            }
+            List<Double> reg = FuncionesAuxiliares.regLineal(data, aux);
+            lambda0 = reg.get(0);
+            beta0 = reg.get(1);
+        }
+        List<Double> pa = new ArrayList<>();
+        List<Double> ga = new ArrayList<>();
+        List<Double> pb = new ArrayList<>();
+        List<Double> gb = new ArrayList<>();
+        pa.add(0d);
+        ga.add(0d);
+        pb.add(0d);
+        gb.add(0d);
+        double lbefore, la, lb, s;
+        boolean alarma = false;
+        int alarmi;
+
+        while( fase == 2 ) {
+            lbefore = lambda0 + dataIndex * beta0; // Lambda si no hay cambio
+            if ( lbefore < 0 ) lbefore = 0.0;
+            la = lbefore + lambda0/2; //Un poco despues de lbefore. Lo que suma debe ser constante
+            if (FuncionesAuxiliares.poissonFunction(dato, lbefore) != 0) { //FIXME esto no está en R
+                // s <- log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
+                s = myPos(dato, lbefore, la);
+                // p[i] <- p[i-1] + log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
+                pa.add(s + pa.get(pa.size() - 1));
+                if ((ga.get(ga.size() - 1) + s) < 0) {
+                    ga.add(0d);
+                } else {
+                    ga.add(ga.get(ga.size() - 1) + s);
+                }
+                // FIXME NUEVO
+                lb = lbefore - lambda0 / 2;
+                if (lb < 0) {
+                    lb = 0;
+                }
+                s = myPos(dato, lbefore, lb);
+                pb.add(s + pb.get(pb.size() - 1));
+                if ((gb.get(gb.size() - 1) + s) < 0) {
+                    gb.add(0d);
+                } else {
+                    gb.add(gb.get(gb.size() - 1) + s);
+                }
+                if (ga.get(ga.size() - 1) > threshold || gb.get(gb.size() - 1) > threshold & !alarma) {
+                    alarmi = dataIndex;
+                    controller.updateAlarma(alarmi);
+                    alarma = true;
+                }
+            }
+            data.add(dato);
+            System.out.println(dato);
+            controller.update(dato);
+            controller.updateDecisions(pa.get(pa.size()-1), ga.get(ga.size()-1), pb.get(pb.size()-1), gb.get(gb.size()-1));
+            dataIndex++;
+            do {
+                tarea = zonaIntercambioEventos.dameTarea();
+            } while (tarea == null);
+            dato = tarea.getCantidadEventos();
+            fase = zonaIntercambioEventos.getFase();
+        }
+
+        if ( fase == 3 ) {
+            fin = dataIndex;
+            double lv = lambda0 + beta0 * medio;
+            int lon2nuevo = fin -medio;
+            double[] datav3 = new double[lon2nuevo + 1];
+            for (int i = 1; i <= lon2nuevo; i++) {
+                datav3[i] = data.get(medio + i - 1);
+            }
+            double lfin = lv + v3(datav3);
+            List<Double> regresion = calculaVelocidad(lv, medio, lfin, lon2nuevo, nven, data);
+            double velocidad = (lfin - lv) / nven / regresion.get(1); //Tamaño una ventana / y de la regresion
+            // Fin del cálculo con la velocidad estimada a partir de los datos
+
+            // Doy una nueva pasada con la velocidad calculada
+            lv = lambda0 + beta0 * medio;
+            lfin = lv + velocidad * lon2nuevo;
+            regresion = calculaVelocidad(lv, medio, lfin, lon2nuevo, nven, data);
+            velocidad = (lfin - lv) / nven / regresion.get(1); //Tamaño una ventana / y de la regresion
+            // Fin de la segunda pasada
+
+            // FINALMENTE CALCULO EL PUNTO DE CAMBIO
+            double puntoCambio = calculaPuntoCambio(medio, lon2nuevo, lambda0, beta0, velocidad, data);
+            System.out.println(puntoCambio);
+            controller.updateCambio(puntoCambio);
+        }
+
+
+    }
+
     @Override
     public void run() {
-        double threshold = 7, l0 = 5, b0 = 0, b1 = 0.05;
+        double threshold = 7, l0 = 5, b0 = 0, b1 = 3;
 //        for (int n = 1; n < arrayLambda.length; n++) {
 //            threshold = arrayThreshold[n]; // Establece el umbral
 //            l0 = arrayLambda[n]; // Establece la lambda inicial
@@ -398,7 +541,8 @@ public class CusumSpark implements Runnable {
 //                for (int indexb1 = indexb0 + 1; indexb1 < arrayVelA.length; indexb1++) {
 //
 //                    b1 = arrayVelA[indexb1];
-                    unExperimento(l0, b0, b1, 100, 50, 15, threshold, 1);
+                    //unExperimento(l0, b0, b1, 100, 50, 15, threshold, 1);
+                    cusumGUI(l0, b0, b1, 100, 50, 15);
 //                }
 //            }
 //        }

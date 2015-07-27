@@ -113,22 +113,22 @@
                 <RowConstraints />
               </rowConstraints>
                <children>
-                  <ScatterChart title="Cumulative Sum (S)">
+                  <LineChart fx:id="cumSumChart" title="Cumulative Sum (S)">
                     <xAxis>
                       <NumberAxis side="BOTTOM" />
                     </xAxis>
                     <yAxis>
                       <NumberAxis side="LEFT" />
                     </yAxis>
-                  </ScatterChart>
-                  <ScatterChart title="Decision Function (g)" GridPane.columnIndex="1">
+                  </LineChart>
+                  <LineChart fx:id="decFunChart" title="Decision Function (g)" GridPane.columnIndex="1">
                     <xAxis>
                       <NumberAxis side="BOTTOM" />
                     </xAxis>
                     <yAxis>
                       <NumberAxis side="LEFT" />
                     </yAxis>
-                  </ScatterChart>
+                  </LineChart>
                </children>
                <GridPane.margin>
                   <Insets />
@@ -140,4 +140,35 @@
          </BorderPane.margin>
       </GridPane>
    </center>
+   <right>
+      <GridPane BorderPane.alignment="CENTER">
+        <columnConstraints>
+          <ColumnConstraints hgrow="SOMETIMES" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" />
+        </rowConstraints>
+         <children>
+            <Button fx:id="fase2Button" mnemonicParsing="false" onAction="#startFase2" text="2 Fase" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
+               <GridPane.margin>
+                  <Insets bottom="10.0" top="20.0" />
+               </GridPane.margin>
+            </Button>
+            <Label fx:id="alarmLabel" text="Alarma" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
+               <GridPane.margin>
+                  <Insets bottom="10.0" top="10.0" />
+               </GridPane.margin>
+            </Label>
+            <TextField fx:id="cambioField" alignment="CENTER" maxWidth="110.0" promptText="Cambio a ojo" GridPane.rowIndex="2">
+               <GridPane.margin>
+                  <Insets />
+               </GridPane.margin>
+            </TextField>
+            <Button fx:id="fase3Button" mnemonicParsing="false" onAction="#startFase3" text="Estima cambio" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER" />
+         </children>
+      </GridPane>
+   </right>
 </BorderPane>
