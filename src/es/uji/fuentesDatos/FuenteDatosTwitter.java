@@ -1,6 +1,8 @@
 package es.uji.fuentesDatos;
 
 import es.uji.filter.NoRetweetFilter;
+import es.uji.processor.Persister;
+import es.uji.processor.Processor;
 import es.uji.processor.ProcessorTweet;
 import twitter4j.*;
 import twitter4j.auth.AccessToken;
@@ -20,10 +22,13 @@ public class FuenteDatosTwitter implements Runnable{
     private boolean bufferInicializado;
 
     private ProcessorTweet processor;
-    private String topico;
+    private Processor persister;
+    private String dataBase, table, topico;
     private ZonaIntercambioEventos zonaIntercambio;
 
-    public FuenteDatosTwitter( String topico, ZonaIntercambioEventos zonaIntercambioEventos ) {
+    public FuenteDatosTwitter( String dataBase, String table, String topico, ZonaIntercambioEventos zonaIntercambioEventos ) {
+        this.dataBase = dataBase;
+        this.table = table;
         this.topico = topico;
         this.zonaIntercambio = zonaIntercambioEventos;
         this.totales = 0;
@@ -38,8 +43,9 @@ public class FuenteDatosTwitter implements Runnable{
     }
 
 
-    private void createProcessor() {
+    private void createProcessor(String database, String table) {
         processor = new ProcessorTweet(zonaIntercambio, new NoRetweetFilter());
+        persister = new Persister(new NoRetweetFilter(), database, table);
     }
 
 
@@ -63,8 +69,10 @@ public class FuenteDatosTwitter implements Runnable{
 
                 if (!bufferInicializado){
                     bufferInicializado = processor.inicializaBuffer(status);
+                    persister.processTweet(status);
                 } else {
                     processor.processTweet(status);
+                    persister.processTweet(status);
                 }
                 totales++;
             }
@@ -77,7 +85,6 @@ public class FuenteDatosTwitter implements Runnable{
             @Override
             public void onTrackLimitationNotice(int numberOfLimitedStatuses) {
 //                System.out.println("Got track limitation notice:" + numberOfLimitedStatuses);
-
             }
 
             @Override
@@ -97,30 +104,25 @@ public class FuenteDatosTwitter implements Runnable{
         };
         twitterStream.addListener(listener);
         FilterQuery filterQuery = new FilterQuery();
-//        filterQuery.track(new String[] {"#votaPP", "#TrabajarHacerCrecer", "#PP"});
         // TODO
-        // filterQuery.track(new String[]{topico});
-        filterQuery.track(new String[]{"realmadrid", "#realmadrid", "#halamadrid"," #ManchesterCity", "#ICC2015", "real madrid", "real", "madrid", "manchestercity", "manchester city"});
+         filterQuery.track(new String[]{topico});
+//        filterQuery.track(new String[]{"realmadrid", "#realmadrid", "#halamadrid"," #ManchesterCity", "#ICC2015", "real madrid", "real", "madrid", "manchestercity", "manchester city"});
 //        filterQuery.track(new String[]{"football", "world cup", "#worldcup", "mundial"});
 //        filterQuery.language(new String[] {"en"});
 //        filterQuery.track(new String[]{"fuego", "llamas", "humo", "incendio"});
 //        filterQuery.track(new String[]{"accidente de tráfico"});
-//        filterQuery.language(new String[]{"es"});
+        filterQuery.language(new String[]{"es", "en"});
         twitterStream.filter(filterQuery);
         try {
-            Thread.sleep(2000);
-//            for(int i = 0; i < 1440; i++) {
+            Thread.sleep(2/*2000*/);
             while(true) {
 
                 // TODO NUNCA acaba este bucle, cuando implementemos la interfaz gráfica que haya un escuchador
                 // (todo) a un botón que pare el flujo de datos de twitter
 
-//                System.out.print("Minuto " + i + " de 1440.\r");
-//                System.out.print("Tweets: " + totales + " en " + new Date() + "\r");
-//                System.out.print(totales + " tweets en " + tiempo() + "\r");
-                Thread.sleep(1 * 1000);
+
+                Thread.sleep(1000);
             }
-//            Thread.sleep(2000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -134,7 +136,7 @@ public class FuenteDatosTwitter implements Runnable{
     @Override
     public void run() {
         System.out.println("Empieza la fiesta!!!!" + new Date());
-        createProcessor();
+        createProcessor(dataBase, table);
         loadProperties();
         starListener(topico);
 

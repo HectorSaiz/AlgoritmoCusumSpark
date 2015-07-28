@@ -1,6 +1,8 @@
 package es.uji.view;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -45,6 +47,10 @@ public class VentanaPrincipalController extends Controller {
     private RadioButton simulationButton;
     @FXML
     private RadioButton twitterButton;
+    @FXML
+    private TextField dataBaseTextField;
+    @FXML
+    private TextField tableTextField;
     @FXML
     private TextField topicTextField;
     @FXML
@@ -93,8 +99,27 @@ public class VentanaPrincipalController extends Controller {
 
         topicTextField.setOnKeyReleased(new EventHandler<KeyEvent>(){
             @Override
+            public void handle(KeyEvent keyEvent) {
+                if ( !topicTextField.getText().equals("") && !dataBaseTextField.getText().equals("") && !tableTextField.getText().equals("")) {
+                    System.out.println(tableTextField.getText());
+                    twitterButton.setDisable(false);
+                }
+            }
+        });
+
+        dataBaseTextField.setOnKeyReleased(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent keyEvent) {
+                if ( !topicTextField.getText().equals("") && !dataBaseTextField.getText().equals("") && !tableTextField.getText().equals("")) {
+                    twitterButton.setDisable(false);
+                }
+            }
+        });
+
+        tableTextField.setOnKeyReleased(new EventHandler<KeyEvent>(){
+            @Override
             public void handle(KeyEvent keyEvent){
-                if (topicTextField.getText() != ""){
+                if ( !topicTextField.getText().equals("") && !dataBaseTextField.getText().equals("") && !tableTextField.getText().equals("")){
                     twitterButton.setDisable(false);
                 }
             }
@@ -142,7 +167,7 @@ public class VentanaPrincipalController extends Controller {
     }
 
     public void setTwitterCusum(){
-        mainApp.setTwitter(topicTextField.getText());
+        mainApp.setTwitter(dataBaseTextField.getText(), tableTextField.getText(), topicTextField.getText());
         startButton.setDisable(false);
     }
 

@@ -50,6 +50,8 @@ public class ProcessorTweet implements Processor {
 
 //            System.out.println(status.getCreatedAt().getTime() + " -------- " + map.size());
 
+            // TODO no estamos controlando que pasa si en un segundo no llega ningún tuit
+
             cantidadEventos = map.get(status.getCreatedAt().getTime());
             cantidadEventos = (cantidadEventos == null) ? 1 : cantidadEventos + 1;
             map.put(status.getCreatedAt().getTime(), cantidadEventos);
@@ -60,6 +62,7 @@ public class ProcessorTweet implements Processor {
 
 //                System.out.println("Primera clave: " + map.firstKey() + " ------ Primer valor: " + map.get(map.firstKey()));
 
+                // TODO estamos mandando solo la cantidad de tuits pero no el segundo en el que se han producido
                 cantidadEventos = map.remove(map.firstKey());
 //                System.out.println("CantidadEventos: " + cantidadEventos);
                 t = new Tarea(cantidadEventos, false);

@@ -90,8 +90,8 @@ public class Main extends Application {
         });
     }
 
-    public void setTwitter(String topico){
-        fuenteDatos = new FuenteDatosTwitter( topico, zonaIntercambio );
+    public void setTwitter(String dataBase, String table, String topico){
+        fuenteDatos = new FuenteDatosTwitter( dataBase, table, topico, zonaIntercambio );
         datos = new Thread( fuenteDatos );
         datos.start();
         cusumSpark.useTwitter(true);
