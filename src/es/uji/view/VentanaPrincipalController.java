@@ -34,9 +34,12 @@ public class VentanaPrincipalController extends Controller {
     private Stack<Double> rawPA = new Stack<>();
     private Stack<Double> rawGB = new Stack<>();
     private Stack<Double> rawPB = new Stack<>();
-    private static int alarm = -1;
-    private static int inicio = 0;
-    private static double cambio = 0;
+    private int alarm = 0;
+    private int inicio = 0;
+    private double cambio = 0;
+    private boolean valuesChanged = false;
+    private int countClear = 0;
+    private boolean countToClear = false;
 
     @FXML
     private RadioButton simulationButton;
@@ -60,9 +63,13 @@ public class VentanaPrincipalController extends Controller {
     private Button fase3Button;
     @FXML
     private TextField cambioField;
+    @FXML
+    private Label cambioLabel;
 
     @FXML
     private void initialize(){
+        fase3Button.setDisable(true);
+        cambioField.setDisable(true);
         fase2Button.setDisable(true);
         startButton.setDisable(true);
         twitterButton.setDisable(true);
@@ -84,16 +91,23 @@ public class VentanaPrincipalController extends Controller {
         gbSerie.setData(gb);
         decFunChart.getData().addAll(gaSerie, gbSerie);
 
-        alarmLabel.setText(""+alarm);
-
-
-
-
         topicTextField.setOnKeyReleased(new EventHandler<KeyEvent>(){
             @Override
             public void handle(KeyEvent keyEvent){
                 if (topicTextField.getText() != ""){
                     twitterButton.setDisable(false);
+                }
+            }
+        });
+
+        cambioField.setOnKeyReleased(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent keyEvent) {
+                try {
+                    Integer.parseInt(cambioField.getText());
+                    fase3Button.setDisable(false);
+                } catch (NumberFormatException e) {
+                    fase3Button.setDisable(true);
                 }
             }
         });
@@ -104,6 +118,22 @@ public class VentanaPrincipalController extends Controller {
                 Platform.runLater(new Runnable() {
                     public void run() {
                         updateCharts();
+                        if (valuesChanged){
+                            alarmLabel.setText("Alarma detectada en: "+alarm);
+                            cambioLabel.setText("Punto de cambio detectado en: "+cambio);
+                            valuesChanged = false;
+                        }
+                        if (countToClear){
+                            if (countClear == 0){
+                                gaSerie.getData().clear();
+                                gbSerie.getData().clear();
+                                paSerie.getData().clear();
+                                pbSerie.getData().clear();
+                                countToClear = false;
+                            } else{
+                                countClear--;
+                            }
+                        }
                     }
                 });
             }
@@ -129,11 +159,14 @@ public class VentanaPrincipalController extends Controller {
     public void startFase2(){
         zonaIntercambio.setFase(2);
         inicio = data.size();
+        cambioField.setDisable(false);
     }
 
     public void startFase3(){
         cusum.setMedio(Integer.parseInt(cambioField.getText()));
         zonaIntercambio.setFase(3);
+        countClear = 2;
+        countToClear = true;
     }
 
     private void updateCharts(){
@@ -180,9 +213,11 @@ public class VentanaPrincipalController extends Controller {
 
     public void updateAlarma(int alarma){
         alarm = alarma;
+        valuesChanged = true;
     }
 
     public void updateCambio(double cambio){
         this.cambio = cambio;
+        valuesChanged = true;
     }
 }

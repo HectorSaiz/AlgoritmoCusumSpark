@@ -8,7 +8,7 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane prefHeight="720.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="es.uji.view.VentanaPrincipalController">
+<BorderPane prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="es.uji.view.VentanaPrincipalController">
    <top>
       <GridPane BorderPane.alignment="CENTER">
         <columnConstraints>
@@ -74,7 +74,7 @@
                         <Insets left="10.0" right="10.0" />
                      </GridPane.margin>
                   </TextField>
-                  <Button fx:id="startButton" mnemonicParsing="false" onAction="#start" text="Start" GridPane.columnIndex="5">
+                  <Button fx:id="startButton" mnemonicParsing="false" onAction="#start" text="Comenzar" GridPane.columnIndex="5">
                      <GridPane.margin>
                         <Insets left="20.0" />
                      </GridPane.margin>
@@ -92,6 +92,8 @@
         <rowConstraints>
           <RowConstraints />
             <RowConstraints />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" />
+            <RowConstraints minHeight="10.0" prefHeight="30.0" />
             <RowConstraints />
             <RowConstraints />
         </rowConstraints>
@@ -110,10 +112,11 @@
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
               </columnConstraints>
               <rowConstraints>
-                <RowConstraints />
+                  <RowConstraints minHeight="10.0" prefHeight="30.0" />
+                  <RowConstraints />
               </rowConstraints>
                <children>
-                  <LineChart fx:id="cumSumChart" title="Cumulative Sum (S)">
+                  <LineChart fx:id="cumSumChart" title="Cumulative Sum (S)" GridPane.rowIndex="1">
                     <xAxis>
                       <NumberAxis side="BOTTOM" />
                     </xAxis>
@@ -121,7 +124,7 @@
                       <NumberAxis side="LEFT" />
                     </yAxis>
                   </LineChart>
-                  <LineChart fx:id="decFunChart" title="Decision Function (g)" GridPane.columnIndex="1">
+                  <LineChart fx:id="decFunChart" title="Decision Function (g)" GridPane.columnIndex="1" GridPane.rowIndex="1">
                     <xAxis>
                       <NumberAxis side="BOTTOM" />
                     </xAxis>
@@ -129,11 +132,55 @@
                       <NumberAxis side="LEFT" />
                     </yAxis>
                   </LineChart>
+                  <Label text="Segunda fase: Detección del cambio" GridPane.halignment="RIGHT">
+                     <GridPane.margin>
+                        <Insets right="120.0" />
+                     </GridPane.margin>
+                     <font>
+                        <Font size="16.0" />
+                     </font>
+                  </Label>
+                  <Button fx:id="fase2Button" mnemonicParsing="false" onAction="#startFase2" text="Comenzar 2" GridPane.halignment="RIGHT" GridPane.valignment="CENTER">
+                     <GridPane.margin>
+                        <Insets right="10.0" />
+                     </GridPane.margin>
+                  </Button>
+                  <Label fx:id="alarmLabel" text="Alarma" textFill="RED" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.valignment="CENTER">
+                     <GridPane.margin>
+                        <Insets left="20.0" />
+                     </GridPane.margin>
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                  </Label>
                </children>
                <GridPane.margin>
                   <Insets />
                </GridPane.margin>
             </GridPane>
+            <Label text="Tercera fase: Estimación del punto de cambio" GridPane.halignment="CENTER" GridPane.rowIndex="2">
+               <font>
+                  <Font size="16.0" />
+               </font>
+               <GridPane.margin>
+                  <Insets right="450.0" />
+               </GridPane.margin>
+            </Label>
+            <TextField fx:id="cambioField" alignment="CENTER" maxWidth="110.0" promptText="Cambio a ojo" GridPane.halignment="CENTER" GridPane.rowIndex="2">
+               <GridPane.margin>
+                  <Insets left="50.0" />
+               </GridPane.margin>
+            </TextField>
+            <Button fx:id="fase3Button" mnemonicParsing="false" onAction="#startFase3" text="Estima cambio" GridPane.halignment="CENTER" GridPane.rowIndex="2" GridPane.valignment="CENTER">
+               <GridPane.margin>
+                  <Insets left="300.0" />
+               </GridPane.margin>
+            </Button>
+            <Label fx:id="cambioLabel" text="Punto de cambio calculado en:" GridPane.halignment="CENTER" GridPane.rowIndex="3">
+               <font>
+                  <Font name="System Bold" size="16.0" />
+               </font>
+            </Label>
          </children>
          <BorderPane.margin>
             <Insets />
@@ -151,24 +198,6 @@
             <RowConstraints minHeight="10.0" prefHeight="30.0" />
             <RowConstraints minHeight="10.0" prefHeight="30.0" />
         </rowConstraints>
-         <children>
-            <Button fx:id="fase2Button" mnemonicParsing="false" onAction="#startFase2" text="2 Fase" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
-               <GridPane.margin>
-                  <Insets bottom="10.0" top="20.0" />
-               </GridPane.margin>
-            </Button>
-            <Label fx:id="alarmLabel" text="Alarma" GridPane.halignment="CENTER" GridPane.rowIndex="1" GridPane.valignment="CENTER">
-               <GridPane.margin>
-                  <Insets bottom="10.0" top="10.0" />
-               </GridPane.margin>
-            </Label>
-            <TextField fx:id="cambioField" alignment="CENTER" maxWidth="110.0" promptText="Cambio a ojo" GridPane.rowIndex="2">
-               <GridPane.margin>
-                  <Insets />
-               </GridPane.margin>
-            </TextField>
-            <Button fx:id="fase3Button" mnemonicParsing="false" onAction="#startFase3" text="Estima cambio" GridPane.halignment="CENTER" GridPane.rowIndex="3" GridPane.valignment="CENTER" />
-         </children>
       </GridPane>
    </right>
 </BorderPane>
