@@ -39,6 +39,8 @@ public class VentanaPrincipalController extends Controller {
     private int cambio = 0;
     private boolean valuesChanged = false;
     private boolean toClear = false;
+    private int delay = 60;
+    private boolean started = false;
 
     @FXML
     private RadioButton simulationButton;
@@ -61,19 +63,18 @@ public class VentanaPrincipalController extends Controller {
     @FXML
     private LineChart<Integer, Double> decFunChart;
     @FXML
-    private Button fase2Button;
-    @FXML
     private Button fase3Button;
     @FXML
     private TextField cambioField;
     @FXML
     private Label cambioLabel;
+    @FXML
+    private TextField retrasoField;
 
     @FXML
     private void initialize(){
         fase3Button.setDisable(true);
         cambioField.setDisable(true);
-        fase2Button.setDisable(true);
         startButton.setDisable(true);
         twitterButton.setDisable(true);
         simulationButton.setToggleGroup(group);
@@ -138,6 +139,16 @@ public class VentanaPrincipalController extends Controller {
         timer.schedule(new TimerTask() {
             public void run() {
                 Platform.runLater(() ->{
+                    if (started){
+                        if (delay == 0){
+                            zonaIntercambio.setFase(2);
+                            inicio = data.size();
+                            cambioField.setDisable(false);
+                            started = false;
+                        } else{
+                            delay--;
+                        }
+                    }
                     if (toClear){
                         Platform.runLater(() ->{
                             decFunChart.setAnimated(false);
@@ -154,7 +165,7 @@ public class VentanaPrincipalController extends Controller {
                     updateCharts();
                     if (valuesChanged){
                         alarmLabel.setText("Alarma detectada en: " + alarm);
-                        cambioLabel.setText("Punto de cambio detectado en: "+cambio);
+                        cambioLabel.setText("Punto de cambio detectado en: " + cambio);
                         valuesChanged = false;
                     }
                 });
@@ -174,14 +185,11 @@ public class VentanaPrincipalController extends Controller {
     }
 
     public void start(){
+        try{
+            delay = Integer.parseInt(retrasoField.getText());
+        }catch (Exception e){ }
         mainApp.startCusum();
-        fase2Button.setDisable(false);
-    }
-
-    public void startFase2(){
-        zonaIntercambio.setFase(2);
-        inicio = data.size();
-        cambioField.setDisable(false);
+        started = true;
     }
 
     public void startFase3(){
