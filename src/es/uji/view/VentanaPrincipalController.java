@@ -213,13 +213,6 @@ public class VentanaPrincipalController extends Controller {
 ////            System.out.println("No ha iniciado");
 //        }
 
-//        for (int i = 0; i < rawData.size(); i++) {
-//            data.add(new XYChart.Data(i, rawData.get(i)));
-//        }
-
-//        for ( Double elem : rawData){
-//            data.add(new XYChart.Data(rawData.indexOf(elem), elem));
-//        }
     }
 
     public void update(double data){

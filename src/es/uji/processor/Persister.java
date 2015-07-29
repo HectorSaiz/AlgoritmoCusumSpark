@@ -76,7 +76,6 @@ public class Persister implements Processor {
                         .setSource(jsonStatus)
                         .execute()
                         .actionGet();
-                System.out.println("guarda");
 
             } catch (JsonProcessingException e) {
                 e.printStackTrace();

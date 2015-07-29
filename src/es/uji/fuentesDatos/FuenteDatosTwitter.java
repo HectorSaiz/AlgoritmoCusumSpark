@@ -18,7 +18,7 @@ public class FuenteDatosTwitter implements Runnable{
     private String consumerSecret;
     private String token;
     private String tokenSecret;
-    private long totales;
+    private long totales, maxTime, AuxMaxTime;
     private boolean bufferInicializado;
 
     private ProcessorTweet processor;
@@ -67,6 +67,11 @@ public class FuenteDatosTwitter implements Runnable{
             @Override
             public void onStatus(Status status) {
 
+                if (status.getCreatedAt().getTime() > maxTime) {
+                    maxTime = status.getCreatedAt().getTime();
+                    AuxMaxTime = status.getCreatedAt().getTime();
+                }
+
                 if (!bufferInicializado){
                     bufferInicializado = processor.inicializaBuffer(status);
                     persister.processTweet(status);
@@ -114,12 +119,19 @@ public class FuenteDatosTwitter implements Runnable{
         filterQuery.language(new String[]{"es", "en"});
         twitterStream.filter(filterQuery);
         try {
-            Thread.sleep(2/*2000*/);
+            Thread.sleep(2000);
+            Tarea t;
             while(true) {
 
                 // TODO NUNCA acaba este bucle, cuando implementemos la interfaz gráfica que haya un escuchador
                 // (todo) a un botón que pare el flujo de datos de twitter
 
+
+                if (AuxMaxTime != maxTime){
+                    t = new Tarea(0, false);
+                    zonaIntercambio.insertaTarea(t);
+                }
+                AuxMaxTime++;
 
                 Thread.sleep(1000);
             }
