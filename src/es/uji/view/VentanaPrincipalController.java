@@ -1,8 +1,6 @@
 package es.uji.view;
 
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -38,10 +36,9 @@ public class VentanaPrincipalController extends Controller {
     private Stack<Double> rawPB = new Stack<>();
     private int alarm = 0;
     private int inicio = 0;
-    private double cambio = 0;
+    private int cambio = 0;
     private boolean valuesChanged = false;
-    private int countClear = 0;
-    private boolean countToClear = false;
+    private boolean toClear = false;
 
     @FXML
     private RadioButton simulationButton;
@@ -140,25 +137,25 @@ public class VentanaPrincipalController extends Controller {
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             public void run() {
-                Platform.runLater(new Runnable() {
-                    public void run() {
-                        updateCharts();
-                        if (valuesChanged){
-                            alarmLabel.setText("Alarma detectada en: "+alarm);
-                            cambioLabel.setText("Punto de cambio detectado en: "+cambio);
-                            valuesChanged = false;
-                        }
-                        if (countToClear){
-                            if (countClear == 0){
-                                gaSerie.getData().clear();
-                                gbSerie.getData().clear();
-                                paSerie.getData().clear();
-                                pbSerie.getData().clear();
-                                countToClear = false;
-                            } else{
-                                countClear--;
-                            }
-                        }
+                Platform.runLater(() ->{
+                    if (toClear){
+                        Platform.runLater(() ->{
+                            decFunChart.setAnimated(false);
+                            cumSumChart.setAnimated(false);
+                            gaSerie.getData().clear();
+                            gbSerie.getData().clear();
+                            paSerie.getData().clear();
+                            pbSerie.getData().clear();
+                            decFunChart.setAnimated(true);
+                            cumSumChart.setAnimated(true);
+                        });
+                        toClear = false;
+                    }
+                    updateCharts();
+                    if (valuesChanged){
+                        alarmLabel.setText("Alarma detectada en: " + alarm);
+                        cambioLabel.setText("Punto de cambio detectado en: "+cambio);
+                        valuesChanged = false;
                     }
                 });
             }
@@ -190,8 +187,8 @@ public class VentanaPrincipalController extends Controller {
     public void startFase3(){
         cusum.setMedio(Integer.parseInt(cambioField.getText()));
         zonaIntercambio.setFase(3);
-        countClear = 2;
-        countToClear = true;
+        inicio = data.size();
+        toClear = true;
     }
 
     private void updateCharts(){
@@ -199,16 +196,16 @@ public class VentanaPrincipalController extends Controller {
             data.add(new XYChart.Data(data.size(), rawData.pop()));
         }
         if (!rawGA.isEmpty()){
-            ga.add(new XYChart.Data(ga.size() +inicio, rawGA.pop()));
+            ga.add(new XYChart.Data(ga.size()+inicio, rawGA.pop()));
         }
         if (!rawGB.isEmpty()){
-            gb.add(new XYChart.Data(gb.size() +inicio, rawGB.pop()));
+            gb.add(new XYChart.Data(gb.size()+inicio, rawGB.pop()));
         }
         if (!rawPA.isEmpty()){
-            pa.add(new XYChart.Data(pa.size() +inicio, rawPA.pop()));
+            pa.add(new XYChart.Data(pa.size()+inicio, rawPA.pop()));
         }
         if (!rawPB.isEmpty()){
-            pb.add(new XYChart.Data(pb.size() +inicio, rawPB.pop()));
+            pb.add(new XYChart.Data(pb.size()+inicio, rawPB.pop()));
         }
 //        try {
 //            data.add(new XYChart.Data(data.size(), rawData.pop()));
@@ -241,7 +238,7 @@ public class VentanaPrincipalController extends Controller {
         valuesChanged = true;
     }
 
-    public void updateCambio(double cambio){
+    public void updateCambio(int cambio){
         this.cambio = cambio;
         valuesChanged = true;
     }

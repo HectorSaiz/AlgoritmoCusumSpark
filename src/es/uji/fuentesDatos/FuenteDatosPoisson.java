@@ -50,8 +50,8 @@ public class FuenteDatosPoisson implements Runnable {
             } catch (InterruptedException e) { }
         }
 
-        for (int i = 151; i <= 240; i++){
-            l = l0 +b0 * lon + b1 * lon2 + 4 * (i-150);
+        for (int i = 201; i <= 300; i++){
+            l = l0 +b0 * lon + b1 * lon2 + 8 * (i-200);
             dato = rdg.nextPoisson(l);
             zonaIntercambioEventos.insertaTarea( new Tarea(dato, false));
             try {

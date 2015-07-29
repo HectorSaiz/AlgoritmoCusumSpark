@@ -35,6 +35,6 @@ public abstract class Controller {
 
 	public abstract void updateAlarma(int alarma);
 
-	public abstract void updateCambio(double cambio);
+	public abstract void updateCambio(int cambio);
 	
 }

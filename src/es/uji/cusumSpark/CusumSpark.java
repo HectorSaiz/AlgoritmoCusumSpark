@@ -244,8 +244,7 @@ public class CusumSpark implements Runnable {
      * @param data
      * @return S
      */
-    private int calculaPuntoCambio(int lon, int lon2, double l0, double b0, double velocidad, List<Double> data){
-        int first = 1;
+    private int calculaPuntoCambio(int first, int lon, int lon2, double l0, double b0, double velocidad, List<Double> data){;
         int last = lon + lon2;
         int lont = last - first;
         double[] S = new double[lont+1];
@@ -253,11 +252,11 @@ public class CusumSpark implements Runnable {
             int i1 = i+1;
             S[i-first] = 0;
             for (int k = i1; k <= last; k++){
-                double lfirst = l0 + b0*k;
+                double lfirst = l0 + b0*(k-first);
                 //if (velocidad<0){
                 //    System.out.println("fallo");
                 //}
-                double lsecond = l0 +b0*i + velocidad*(k-i);
+                double lsecond = l0 +b0*(i-first) + velocidad*(k-i);
                 if (lsecond < 0){
                     lsecond = 0;
                 }
@@ -323,7 +322,7 @@ public class CusumSpark implements Runnable {
 
             // FINALMENTE CALCULO EL PUNTO DE CAMBIO
             if ( velocidad > 0 && Math.abs(velocidad-b1) < b1 ){
-                double puntoCambio = calculaPuntoCambio(lon, lon2, l0, b0, velocidad, data);
+                double puntoCambio = calculaPuntoCambio(1,lon, lon2, l0, b0, velocidad, data);
 //                if ( inverse ){
 //                    time[j] += (lon2-lon);
 //                }
@@ -395,6 +394,7 @@ public class CusumSpark implements Runnable {
         int fase;
         double lambda0 = 0d, beta0 = 0d;
         double threshold = 7;
+        boolean veneno = false;
         data = new ArrayList<>();
         dataIndex = 0;
         if (!twitter) {
@@ -421,6 +421,9 @@ public class CusumSpark implements Runnable {
 
         while(true) {
             while (fase == 1) {
+                if (veneno){
+                    break;
+                }
                 data.add(dato);
                 System.out.println(dato);
                 controller.update(dato);
@@ -430,9 +433,13 @@ public class CusumSpark implements Runnable {
                 } while (tarea == null);
                 dato = tarea.getCantidadEventos();
                 fase = zonaIntercambioEventos.getFase();
+                veneno = tarea.isEsVeneno();
             }
 
             if (fase == 2) {
+                if (veneno){
+                    break;
+                }
                 inicio = dataIndex;
                 List<Double> aux = new ArrayList<>();
                 List<Double> dataAux = new ArrayList<>();
@@ -491,6 +498,9 @@ public class CusumSpark implements Runnable {
                         alarma = true;
                     }
                 }
+                if (veneno){
+                    break;
+                }
                 data.add(dato);
                 System.out.println(dato);
                 controller.update(dato);
@@ -501,6 +511,7 @@ public class CusumSpark implements Runnable {
                 } while (tarea == null);
                 dato = tarea.getCantidadEventos();
                 fase = zonaIntercambioEventos.getFase();
+                veneno = tarea.isEsVeneno();
             }
 
             if (fase == 3) {
@@ -524,7 +535,7 @@ public class CusumSpark implements Runnable {
                 // Fin de la segunda pasada
 
                 // FINALMENTE CALCULO EL PUNTO DE CAMBIO
-                puntoCambio = calculaPuntoCambio(medio, lon2nuevo, lambda0, beta0, velocidad, data);
+                puntoCambio = calculaPuntoCambio(puntoCambio, medio, lon2nuevo, lambda0, beta0, velocidad, data);
                 controller.updateCambio(puntoCambio);
                 zonaIntercambioEventos.setFase(2);
                 fase = zonaIntercambioEventos.getFase();
@@ -534,7 +545,7 @@ public class CusumSpark implements Runnable {
 
     @Override
     public void run() {
-        double threshold = 7, l0 = 5, b0 = 0, b1 = 1;
+        double threshold = 7, l0 = 5, b0 = 1, b1 = 3;
 //        for (int n = 1; n < arrayLambda.length; n++) {
 //            threshold = arrayThreshold[n]; // Establece el umbral
 //            l0 = arrayLambda[n]; // Establece la lambda inicial
@@ -547,7 +558,7 @@ public class CusumSpark implements Runnable {
 //
 //                    b1 = arrayVelA[indexb1];
                     //unExperimento(l0, b0, b1, 100, 50, 15, threshold, 1);
-                    cusumGUI(l0, b0, b1, 100, 50, 15);
+                    cusumGUI(l0, b0, b1, 100, 100, 15);
 //                }
 //            }
 //        }
