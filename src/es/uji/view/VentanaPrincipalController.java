@@ -1,6 +1,8 @@
 package es.uji.view;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -24,11 +26,13 @@ public class VentanaPrincipalController extends Controller {
     private ObservableList<XYChart.Data<Integer,Double>> pa = FXCollections.observableArrayList();
     private ObservableList<XYChart.Data<Integer,Double>> gb = FXCollections.observableArrayList();
     private ObservableList<XYChart.Data<Integer,Double>> pb = FXCollections.observableArrayList();
+    private ObservableList<XYChart.Data<Integer,Double>> dataThreshold = FXCollections.observableArrayList();
     final ScatterChart.Series<Integer,Double> dataSerie = new XYChart.Series();
     final LineChart.Series<Integer,Double> gaSerie = new XYChart.Series();
     final LineChart.Series<Integer,Double> paSerie = new XYChart.Series();
     final LineChart.Series<Integer,Double> gbSerie = new XYChart.Series();
     final LineChart.Series<Integer,Double> pbSerie = new XYChart.Series();
+    final LineChart.Series<Integer,Double> thresholdSerie = new XYChart.Series();
     private Stack<Double> rawData = new Stack<>();
     private Stack<Double> rawGA = new Stack<>();
     private Stack<Double> rawPA = new Stack<>();
@@ -81,7 +85,9 @@ public class VentanaPrincipalController extends Controller {
         twitterButton.setToggleGroup(group);
         dataSerie.setName("tweets");
         dataSerie.setData(data);
+        thresholdSerie.setData(dataThreshold);
         dataChart.getData().add(dataSerie);
+
 
         paSerie.setName("After");
         paSerie.setData(pa);
@@ -93,7 +99,10 @@ public class VentanaPrincipalController extends Controller {
         gaSerie.setData(ga);
         gbSerie.setName("Before");
         gbSerie.setData(gb);
-        decFunChart.getData().addAll(gaSerie, gbSerie);
+        thresholdSerie.setName("Threshold");
+        dataThreshold.add(new XYChart.Data(ga.size() + inicio, 10));
+        thresholdSerie.setData(dataThreshold);
+        decFunChart.getData().addAll(gaSerie, gbSerie, thresholdSerie);
 
         topicTextField.setOnKeyReleased(new EventHandler<KeyEvent>(){
             @Override
@@ -202,6 +211,9 @@ public class VentanaPrincipalController extends Controller {
     private void updateCharts(){
         if (!rawData.isEmpty()){
             data.add(new XYChart.Data(data.size(), rawData.pop()));
+        }
+        if (!rawGA.isEmpty()){
+            dataThreshold.add(new XYChart.Data(ga.size() + inicio, 10));
         }
         if (!rawGA.isEmpty()){
             ga.add(new XYChart.Data(ga.size()+inicio, rawGA.pop()));

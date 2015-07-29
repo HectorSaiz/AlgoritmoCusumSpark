@@ -75,6 +75,7 @@ public class Main extends Application {
                     }
 
                     Scene scene = new Scene(rootLayout);
+//                    scene.getStylesheets().add(getClass().getResource("chart.css").toExternalForm());
                     primaryStage.setScene(scene);
                     primaryStage.setMaximized(true);
                     primaryStage.show();

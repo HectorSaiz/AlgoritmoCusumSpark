@@ -150,12 +150,12 @@
                       <NumberAxis side="LEFT" />
                     </yAxis>
                   </LineChart>
-                  <LineChart fx:id="decFunChart" title="Decision Function (g)" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                  <LineChart fx:id="decFunChart" stylesheets="@chart.css" title="Decision Function (g)" GridPane.columnIndex="1" GridPane.rowIndex="1">
                     <xAxis>
-                      <NumberAxis side="BOTTOM" />
+                      <NumberAxis side="BOTTOM" stylesheets="@chart.css" />
                     </xAxis>
                     <yAxis>
-                      <NumberAxis side="LEFT" />
+                      <NumberAxis side="LEFT" stylesheets="@chart.css" />
                     </yAxis>
                   </LineChart>
                   <Label fx:id="alarmLabel" text="Alarma" textFill="RED" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
