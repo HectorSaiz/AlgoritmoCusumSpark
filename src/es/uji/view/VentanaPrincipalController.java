@@ -13,7 +13,9 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
 
-import java.util.Stack;
+import java.util.List;
+import java.util.Queue;
+import java.util.LinkedList;
 import java.util.Timer;
 import java.util.TimerTask;
 
