@@ -9,7 +9,7 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane prefHeight="1080.0" prefWidth="1920.0" stylesheets="@chart.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="es.uji.view.VentanaPrincipalController">
+<BorderPane prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="es.uji.view.VentanaPrincipalController">
    <top>
       <GridPane BorderPane.alignment="CENTER">
         <columnConstraints>
@@ -105,13 +105,21 @@
                      </padding>
                   </Label>
                   <TextField fx:id="tableTextField" />
+                  <Label fx:id="segActualLabel" text="Segundo actual: ">
+                     <FlowPane.margin>
+                        <Insets left="20.0" />
+                     </FlowPane.margin>
+                     <font>
+                        <Font size="16.0" />
+                     </font>
+                  </Label>
                </children>
             </FlowPane>
          </children>
       </GridPane>
    </top>
    <center>
-      <GridPane BorderPane.alignment="CENTER">
+      <GridPane stylesheets="@chartData.css" BorderPane.alignment="CENTER">
         <columnConstraints>
           <ColumnConstraints hgrow="SOMETIMES" />
         </columnConstraints>
@@ -124,15 +132,7 @@
             <RowConstraints />
         </rowConstraints>
          <children>
-            <ScatterChart fx:id="dataChart" title="Datos">
-              <xAxis>
-                <NumberAxis side="BOTTOM" />
-              </xAxis>
-              <yAxis>
-                <NumberAxis side="LEFT" />
-              </yAxis>
-            </ScatterChart>
-            <GridPane GridPane.rowIndex="1">
+            <GridPane stylesheets="@chart.css" GridPane.rowIndex="1">
               <columnConstraints>
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
                 <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
@@ -144,18 +144,18 @@
                <children>
                   <LineChart fx:id="cumSumChart" title="Cumulative Sum (S)" GridPane.rowIndex="1">
                     <xAxis>
-                      <NumberAxis side="BOTTOM" />
+                      <NumberAxis fx:id="cumSumXAxis" label="Tiempo (s)" side="BOTTOM" />
                     </xAxis>
                     <yAxis>
-                      <NumberAxis side="LEFT" />
+                      <NumberAxis label="Valor" side="LEFT" />
                     </yAxis>
                   </LineChart>
-                  <LineChart fx:id="decFunChart" stylesheets="@chart.css" title="Decision Function (g)" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                  <LineChart fx:id="decFunChart" title="Decision Function (g)" GridPane.columnIndex="1" GridPane.rowIndex="1">
                     <xAxis>
-                      <NumberAxis side="BOTTOM" stylesheets="@chart.css" />
+                      <NumberAxis fx:id="decFunXAxis" label="Tiempo (s)" side="BOTTOM" stylesheets="@chart.css" />
                     </xAxis>
                     <yAxis>
-                      <NumberAxis side="LEFT" stylesheets="@chart.css" />
+                      <NumberAxis label="Valor" side="LEFT" stylesheets="@chart.css" />
                     </yAxis>
                   </LineChart>
                   <Label fx:id="alarmLabel" text="Alarma" textFill="RED" GridPane.columnIndex="1" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
@@ -194,6 +194,14 @@
                   <Font name="System Bold" size="16.0" />
                </font>
             </Label>
+            <LineChart fx:id="dataChart" title="Datos">
+              <xAxis>
+                <NumberAxis label="Tiempo (s)" side="BOTTOM" />
+              </xAxis>
+              <yAxis>
+                <NumberAxis label="Número de tweets" side="LEFT" />
+              </yAxis>
+            </LineChart>
          </children>
          <BorderPane.margin>
             <Insets />

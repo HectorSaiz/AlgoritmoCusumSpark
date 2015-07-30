@@ -1,13 +1,12 @@
 package es.uji.view;
 
 import javafx.application.Platform;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.ScatterChart;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
@@ -26,12 +25,14 @@ public class VentanaPrincipalController extends Controller {
 
     final ToggleGroup group = new ToggleGroup();
     private ObservableList<XYChart.Data<Integer,Double>> data = FXCollections.observableArrayList();
+    private ObservableList<XYChart.Data<Integer,Double>> dataCambio = FXCollections.observableArrayList();
     private ObservableList<XYChart.Data<Integer,Double>> ga = FXCollections.observableArrayList();
     private ObservableList<XYChart.Data<Integer,Double>> pa = FXCollections.observableArrayList();
     private ObservableList<XYChart.Data<Integer,Double>> gb = FXCollections.observableArrayList();
     private ObservableList<XYChart.Data<Integer,Double>> pb = FXCollections.observableArrayList();
     private ObservableList<XYChart.Data<Integer,Double>> dataThreshold = FXCollections.observableArrayList();
-    final ScatterChart.Series<Integer,Double> dataSerie = new XYChart.Series();
+    final LineChart.Series<Integer,Double> dataSerie = new XYChart.Series();
+    final LineChart.Series<Integer,Double> dataCambioSerie = new XYChart.Series();
     final LineChart.Series<Integer,Double> gaSerie = new XYChart.Series();
     final LineChart.Series<Integer,Double> paSerie = new XYChart.Series();
     final LineChart.Series<Integer,Double> gbSerie = new XYChart.Series();
@@ -44,7 +45,7 @@ public class VentanaPrincipalController extends Controller {
     private Queue<Double> rawPB = new LinkedList<>();
     private int alarm = 0;
     private int cambio = 0;
-    private boolean valuesChanged = false;
+    private boolean cambioDetectado = false;
     private int delay = 60;
     private boolean started = false;
     private boolean updateFirstDecisions = false;
@@ -62,7 +63,7 @@ public class VentanaPrincipalController extends Controller {
     @FXML
     private Button startButton;
     @FXML
-    private ScatterChart<Integer, Double> dataChart;
+    private LineChart<Integer, Double> dataChart;
     @FXML
     private Label alarmLabel;
     @FXML
@@ -77,19 +78,29 @@ public class VentanaPrincipalController extends Controller {
     private Label cambioLabel;
     @FXML
     private TextField retrasoField;
+    @FXML
+    private NumberAxis decFunXAxis;
+    @FXML
+    private NumberAxis cumSumXAxis;
+    @FXML
+    private Label segActualLabel;
 
     @FXML
     private void initialize(){
+        decFunXAxis.setForceZeroInRange(false);
+        cumSumXAxis.setForceZeroInRange(false);
         fase3Button.setDisable(true);
         cambioField.setDisable(true);
         startButton.setDisable(true);
         twitterButton.setDisable(true);
         simulationButton.setToggleGroup(group);
         twitterButton.setToggleGroup(group);
-        dataSerie.setName("tweets");
+        dataSerie.setName("Tweets/segundo");
         dataSerie.setData(data);
+        dataCambioSerie.setName("Puntos de cambio");
+        dataCambioSerie.setData(dataCambio);
         thresholdSerie.setData(dataThreshold);
-        dataChart.getData().add(dataSerie);
+        dataChart.getData().addAll(dataSerie, dataCambioSerie);
 
 
         paSerie.setName("After");
@@ -103,7 +114,6 @@ public class VentanaPrincipalController extends Controller {
         gbSerie.setName("Before");
         gbSerie.setData(gb);
         thresholdSerie.setName("Threshold");
-        dataThreshold.add(new XYChart.Data(ga.size() + cambio, 10));
         thresholdSerie.setData(dataThreshold);
         decFunChart.getData().addAll(gaSerie, gbSerie, thresholdSerie);
 
@@ -168,8 +178,10 @@ public class VentanaPrincipalController extends Controller {
                             gbSerie.getData().clear();
                             paSerie.getData().clear();
                             pbSerie.getData().clear();
+                            thresholdSerie.getData().clear();
                             decFunChart.setAnimated(true);
                             cumSumChart.setAnimated(true);
+                            dataThreshold.add(new XYChart.Data(ga.size() + cambio, 10));
                             while (!rawGA.isEmpty()) {
                                 ga.add(new XYChart.Data(ga.size() + cambio, rawGA.poll()));
                             }
@@ -182,16 +194,18 @@ public class VentanaPrincipalController extends Controller {
                             while (!rawPB.isEmpty()) {
                                 pb.add(new XYChart.Data(pb.size()+cambio, rawPB.poll()));
                             }
+                            dataThreshold.add(new XYChart.Data(ga.size() + cambio, 10));
                         });
                         updateFirstDecisions = false;
                     }
                     Platform.runLater(() ->
                         updateCharts()
                     );
-                    if (valuesChanged) {
+                    if (cambioDetectado) {
                         alarmLabel.setText("Alarma detectada en: " + alarm);
                         cambioLabel.setText("Punto de cambio detectado en: " + cambio);
-                        valuesChanged = false;
+                        dataCambio.add(new XYChart.Data(cambio, dataSerie.getData().get(cambio).getYValue()));
+                        cambioDetectado = false;
                     }
                 });
             }
@@ -224,6 +238,7 @@ public class VentanaPrincipalController extends Controller {
 
     private void updateCharts(){
         if (!rawData.isEmpty()) {
+            segActualLabel.setText("Segundo actual: "+data.size());
             data.add(new XYChart.Data(data.size(), rawData.poll()));
         }
         if (!rawGA.isEmpty()){
@@ -265,12 +280,12 @@ public class VentanaPrincipalController extends Controller {
 
     public void updateAlarma(int alarma){
         alarm = alarma;
-        valuesChanged = true;
+        cambioDetectado = true;
     }
 
     public void updateCambio(int cambio){
         this.cambio = cambio;
-        valuesChanged = true;
+        cambioDetectado = true;
     }
 
     public void updateFirstDecisions(List<Double> pa,List<Double> ga, List<Double> pb,List<Double> gb){

@@ -28,7 +28,7 @@ public class CusumSpark implements Runnable {
     private boolean twitter;
     private ZonaIntercambioEventos zonaIntercambioEventos;
     private Controller controller;
-    private static int inicio, medio, fin, puntoCambio = 1;
+    private int inicio, medio, fin, puntoCambio = 1;
 
 //    private static int lon = 100;  // Cantidad de números antes de introducir en cambio
 //    private static int lon2 = 50;  // Cantidad de números después de introducir el cambio
