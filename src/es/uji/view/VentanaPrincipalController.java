@@ -33,18 +33,17 @@ public class VentanaPrincipalController extends Controller {
     final LineChart.Series<Integer,Double> gbSerie = new XYChart.Series();
     final LineChart.Series<Integer,Double> pbSerie = new XYChart.Series();
     final LineChart.Series<Integer,Double> thresholdSerie = new XYChart.Series();
-    private Stack<Double> rawData = new Stack<>();
-    private Stack<Double> rawGA = new Stack<>();
-    private Stack<Double> rawPA = new Stack<>();
-    private Stack<Double> rawGB = new Stack<>();
-    private Stack<Double> rawPB = new Stack<>();
+    private Queue<Double> rawData = new LinkedList<>();
+    private Queue<Double> rawGA = new LinkedList<>();
+    private Queue<Double> rawPA = new LinkedList<>();
+    private Queue<Double> rawGB = new LinkedList<>();
+    private Queue<Double> rawPB = new LinkedList<>();
     private int alarm = 0;
-    private int inicio = 0;
     private int cambio = 0;
     private boolean valuesChanged = false;
-    private boolean toClear = false;
     private int delay = 60;
     private boolean started = false;
+    private boolean updateFirstDecisions = false;
 
     @FXML
     private RadioButton simulationButton;
@@ -100,7 +99,7 @@ public class VentanaPrincipalController extends Controller {
         gbSerie.setName("Before");
         gbSerie.setData(gb);
         thresholdSerie.setName("Threshold");
-        dataThreshold.add(new XYChart.Data(ga.size() + inicio, 10));
+        dataThreshold.add(new XYChart.Data(ga.size() + cambio, 10));
         thresholdSerie.setData(dataThreshold);
         decFunChart.getData().addAll(gaSerie, gbSerie, thresholdSerie);
 
@@ -147,18 +146,17 @@ public class VentanaPrincipalController extends Controller {
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             public void run() {
-                Platform.runLater(() ->{
-                    if (started){
-                        if (delay == 0){
+                Platform.runLater(() -> {
+                    if (started) {
+                        if (delay == 0) {
                             zonaIntercambio.setFase(2);
-                            inicio = data.size();
                             cambioField.setDisable(false);
                             started = false;
-                        } else{
+                        } else {
                             delay--;
                         }
                     }
-                    if (toClear){
+                    if (updateFirstDecisions) {
                         Platform.runLater(() ->{
                             decFunChart.setAnimated(false);
                             cumSumChart.setAnimated(false);
@@ -168,11 +166,25 @@ public class VentanaPrincipalController extends Controller {
                             pbSerie.getData().clear();
                             decFunChart.setAnimated(true);
                             cumSumChart.setAnimated(true);
+                            while (!rawGA.isEmpty()) {
+                                ga.add(new XYChart.Data(ga.size() + cambio, rawGA.poll()));
+                            }
+                            while (!rawGB.isEmpty()) {
+                                gb.add(new XYChart.Data(gb.size()+cambio, rawGB.poll()));
+                            }
+                            while (!rawPA.isEmpty()) {
+                                pa.add(new XYChart.Data(pa.size()+cambio, rawPA.poll()));
+                            }
+                            while (!rawPB.isEmpty()) {
+                                pb.add(new XYChart.Data(pb.size()+cambio, rawPB.poll()));
+                            }
                         });
-                        toClear = false;
+                        updateFirstDecisions = false;
                     }
-                    updateCharts();
-                    if (valuesChanged){
+                    Platform.runLater(() ->
+                        updateCharts()
+                    );
+                    if (valuesChanged) {
                         alarmLabel.setText("Alarma detectada en: " + alarm);
                         cambioLabel.setText("Punto de cambio detectado en: " + cambio);
                         valuesChanged = false;
@@ -204,28 +216,26 @@ public class VentanaPrincipalController extends Controller {
     public void startFase3(){
         cusum.setMedio(Integer.parseInt(cambioField.getText()));
         zonaIntercambio.setFase(3);
-        inicio = data.size();
-        toClear = true;
     }
 
     private void updateCharts(){
-        if (!rawData.isEmpty()){
-            data.add(new XYChart.Data(data.size(), rawData.pop()));
+        if (!rawData.isEmpty()) {
+            data.add(new XYChart.Data(data.size(), rawData.poll()));
         }
         if (!rawGA.isEmpty()){
-            dataThreshold.add(new XYChart.Data(ga.size() + inicio, 10));
+            dataThreshold.add(new XYChart.Data(ga.size() + cambio, 10));
         }
         if (!rawGA.isEmpty()){
-            ga.add(new XYChart.Data(ga.size()+inicio, rawGA.pop()));
+            ga.add(new XYChart.Data(ga.size()+cambio, rawGA.poll()));
         }
         if (!rawGB.isEmpty()){
-            gb.add(new XYChart.Data(gb.size()+inicio, rawGB.pop()));
+            gb.add(new XYChart.Data(gb.size()+cambio, rawGB.poll()));
         }
         if (!rawPA.isEmpty()){
-            pa.add(new XYChart.Data(pa.size()+inicio, rawPA.pop()));
+            pa.add(new XYChart.Data(pa.size()+cambio, rawPA.poll()));
         }
         if (!rawPB.isEmpty()){
-            pb.add(new XYChart.Data(pb.size()+inicio, rawPB.pop()));
+            pb.add(new XYChart.Data(pb.size()+cambio, rawPB.poll()));
         }
 //        try {
 //            data.add(new XYChart.Data(data.size(), rawData.pop()));
@@ -254,5 +264,13 @@ public class VentanaPrincipalController extends Controller {
     public void updateCambio(int cambio){
         this.cambio = cambio;
         valuesChanged = true;
+    }
+
+    public void updateFirstDecisions(List<Double> pa,List<Double> ga, List<Double> pb,List<Double> gb){
+        rawGA.addAll(ga);
+        rawGB.addAll(gb);
+        rawPA.addAll(pa);
+        rawPB.addAll(pb);
+        updateFirstDecisions = true;
     }
 }

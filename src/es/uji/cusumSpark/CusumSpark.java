@@ -425,7 +425,6 @@ public class CusumSpark implements Runnable {
                     break;
                 }
                 data.add(dato);
-                System.out.println(dato);
                 controller.update(dato);
                 dataIndex++;
                 do {
@@ -436,6 +435,17 @@ public class CusumSpark implements Runnable {
                 veneno = tarea.isEsVeneno();
             }
 
+            List<Double> pa = new ArrayList<>();
+            List<Double> ga = new ArrayList<>();
+            List<Double> pb = new ArrayList<>();
+            List<Double> gb = new ArrayList<>();
+            pa.add(0d);
+            ga.add(0d);
+            pb.add(0d);
+            gb.add(0d);
+            double lbefore, la, lb, s;
+            boolean alarma = false;
+            int alarmi;
             if (fase == 2) {
                 if (veneno){
                     break;
@@ -449,22 +459,38 @@ public class CusumSpark implements Runnable {
                 }
                 List<Double> reg = FuncionesAuxiliares.regLineal(dataAux, aux);
                 beta0 = reg.get(1);
-                System.out.println("YOYOYOYOYOYO BETA: "+beta0);
                 lambda0 = reg.get(0) + puntoCambio*beta0;
-                System.out.println("YEYEYEYEYEYE LAMBDA: "+lambda0);
+                for (int i = puntoCambio+1; i<dataIndex; i++){
+                    lbefore = lambda0 + (i-puntoCambio) * beta0; // Lambda si no hay cambio
+                    if (lbefore < 0) lbefore = 0.0;
+                    la = lbefore + lambda0 / 2; //Un poco despues de lbefore. Lo que suma debe ser constante
+                    if (FuncionesAuxiliares.poissonFunction(data.get(i-2), lbefore) != 0) { //FIXME esto no está en R
+                        // s <- log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
+                        s = myPos(data.get(i-2), lbefore, la);
+                        // p[i] <- p[i-1] + log(dpois(data[i], lambda=lafter)/dpois(data[i], lambda=lbefore))
+                        pa.add(s + pa.get(pa.size() - 1));
+                        if ((ga.get(ga.size() - 1) + s) < 0) {
+                            ga.add(0d);
+                        } else {
+                            ga.add(ga.get(ga.size() - 1) + s);
+                        }
+                        // FIXME NUEVO
+                        lb = lbefore - lambda0 / 2;
+                        if (lb < 0) {
+                            lb = 0;
+                        }
+                        s = myPos(data.get(i-2), lbefore, lb);
+                        pb.add(s + pb.get(pb.size() - 1));
+                        if ((gb.get(gb.size() - 1) + s) < 0) {
+                            gb.add(0d);
+                        } else {
+                            gb.add(gb.get(gb.size() - 1) + s);
+                        }
+                    }
+                }
+                controller.updateFirstDecisions(pa, ga, pb, gb);
             }
-            List<Double> pa = new ArrayList<>();
-            List<Double> ga = new ArrayList<>();
-            List<Double> pb = new ArrayList<>();
-            List<Double> gb = new ArrayList<>();
-            pa.add(0d);
-            ga.add(0d);
-            pb.add(0d);
-            gb.add(0d);
-            double lbefore, la, lb, s;
-            System.out.println("HEY");
-            boolean alarma = false;
-            int alarmi;
+
 
             while (fase == 2) {
                 lbefore = lambda0 + (dataIndex-puntoCambio) * beta0; // Lambda si no hay cambio
@@ -502,7 +528,6 @@ public class CusumSpark implements Runnable {
                     break;
                 }
                 data.add(dato);
-                System.out.println(dato);
                 controller.update(dato);
                 controller.updateDecisions(pa.get(pa.size() - 1), ga.get(ga.size() - 1), pb.get(pb.size() - 1), gb.get(gb.size() - 1));
                 dataIndex++;

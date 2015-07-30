@@ -4,6 +4,8 @@ import es.uji.Main;
 import es.uji.cusumSpark.CusumSpark;
 import es.uji.fuentesDatos.ZonaIntercambioEventos;
 
+import java.util.List;
+
 /**
  * Clase controlador
  * @author Alberto y Héctor
@@ -36,5 +38,7 @@ public abstract class Controller {
 	public abstract void updateAlarma(int alarma);
 
 	public abstract void updateCambio(int cambio);
+
+	public abstract void updateFirstDecisions(List<Double> pa, List<Double> ga, List<Double> pb, List<Double> gb);
 	
 }
