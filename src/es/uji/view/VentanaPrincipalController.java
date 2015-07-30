@@ -13,7 +13,9 @@ import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
 
-import java.util.*;
+import java.util.Stack;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by root on 23/07/15.
@@ -224,6 +226,9 @@ public class VentanaPrincipalController extends Controller {
         }
         if (!rawGA.isEmpty()){
             dataThreshold.add(new XYChart.Data(ga.size() + cambio, 10));
+            if (dataThreshold.size() == 3) {
+                dataThreshold.remove(1);
+            }
         }
         if (!rawGA.isEmpty()){
             ga.add(new XYChart.Data(ga.size()+cambio, rawGA.poll()));

@@ -9,7 +9,7 @@
 <?import java.lang.*?>
 <?import javafx.scene.layout.*?>
 
-<BorderPane prefHeight="1080.0" prefWidth="1920.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="es.uji.view.VentanaPrincipalController">
+<BorderPane prefHeight="1080.0" prefWidth="1920.0" stylesheets="@chart.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="es.uji.view.VentanaPrincipalController">
    <top>
       <GridPane BorderPane.alignment="CENTER">
         <columnConstraints>
