@@ -10,17 +10,16 @@ public class FuenteDatosPoisson implements Runnable {
     private RandomDataGenerator rdg;
     private int lon, lon2;
     private long tiempoEspera;
-    private double l0, b0, b1;
+    private double l0;
+    private double[] betas;
     //Este atributo privado mantiene el vector con los observadores
     private ZonaIntercambioEventos zonaIntercambioEventos;
 
-    public FuenteDatosPoisson ( long tiempoEspera, double l0, double b0, double b1, int lon, int lon2, ZonaIntercambioEventos zonaIntercambioEventos ) {
+    public FuenteDatosPoisson ( long tiempoEspera, double l0, double[] betas, int lon, ZonaIntercambioEventos zonaIntercambioEventos ) {
         this.tiempoEspera = tiempoEspera;
         this.l0 = l0;
-        this.b0 = b0;
-        this.b1 = b1;
+        this.betas = betas;
         this.lon = lon;
-        this.lon2 = lon2;
         this.rdg = new RandomDataGenerator();
         this.zonaIntercambioEventos = zonaIntercambioEventos;
     }
@@ -28,35 +27,18 @@ public class FuenteDatosPoisson implements Runnable {
     @Override
     public void run() {
         double l, dato;
+        for (int k = 0; k<betas.length;k++){
+            if (k > 0)
+                l0 = l0 + lon*betas[k-1];
+            for (int i = 1; i <= lon; i++) {
+                l = l0 + i * betas[k];
+                dato = rdg.nextPoisson(l);
+                zonaIntercambioEventos.insertaTarea( new Tarea(dato, false) );
+                try {
+                    Thread.sleep(tiempoEspera);
+                } catch (InterruptedException e) { }
 
-        for (int i = 1; i <= lon; i++) {
-            l = l0 + i * b0;
-            dato = rdg.nextPoisson(l);
-            zonaIntercambioEventos.insertaTarea( new Tarea(dato, false) );
-            try {
-                Thread.sleep(tiempoEspera);
-            } catch (InterruptedException e) { }
-
-        }
-
-        int first = lon+1;
-        int last = lon + lon2;
-        for (int i = first; i <= last; i++) {
-            l = l0 + b0 * lon + b1 * (i - lon);
-            dato = rdg.nextPoisson(l);
-            zonaIntercambioEventos.insertaTarea( new Tarea(dato, false) );
-            try {
-                Thread.sleep(tiempoEspera);
-            } catch (InterruptedException e) { }
-        }
-
-        for (int i = 201; i <= 300; i++){
-            l = l0 +b0 * lon + b1 * lon2 + 8 * (i-200);
-            dato = rdg.nextPoisson(l);
-            zonaIntercambioEventos.insertaTarea( new Tarea(dato, false));
-            try {
-                Thread.sleep(tiempoEspera);
-            } catch (InterruptedException e) { }
+            }
         }
         zonaIntercambioEventos.insertaTarea( new Tarea(0.0, true) );
     }

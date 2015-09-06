@@ -29,6 +29,7 @@ public class CusumSpark implements Runnable {
     private ZonaIntercambioEventos zonaIntercambioEventos;
     private Controller controller;
     private int inicio, medio, fin, puntoCambio = 1;
+    private double[] betas = new double[] {0, 1, 3, 5, 7};
 
 //    private static int lon = 100;  // Cantidad de números antes de introducir en cambio
 //    private static int lon2 = 50;  // Cantidad de números después de introducir el cambio
@@ -96,7 +97,7 @@ public class CusumSpark implements Runnable {
         return (regresion.get(1)*(data.length-1));
     }
 
-    private List<Double> generaDatosLambda(double l0, double b0, double b1, int lon, int lon2){
+    private List<Double> generaDatosLambda(double l0, double[] betas, int lon){
 
         Tarea tarea;
         double dato;
@@ -115,7 +116,7 @@ public class CusumSpark implements Runnable {
             }
 
             long tiempoEspera = 1000;
-            FuenteDatosPoisson eventSource = new FuenteDatosPoisson(tiempoEspera, l0, b0, b1, lon, lon2, zonaIntercambioEventos);
+            FuenteDatosPoisson eventSource = new FuenteDatosPoisson(tiempoEspera, l0, betas, lon, zonaIntercambioEventos);
             t = new Thread(eventSource);
             t.start();
         }
@@ -342,7 +343,8 @@ public class CusumSpark implements Runnable {
         return res;
     }
 
-    private void unExperimento(double l0, double b0, double b1, int lon, int lon2, int nven, double threshold, int exp){
+    // Metodo desactualizado para cuando se generan varios puntos de cambio
+    private void unExperimento(double l0, double[] betas, int lon, int nven, double threshold, int exp){
         int i = 1;
         double[] velocidades = new double[exp+1];
         double[] time = new double[exp+1];
@@ -350,8 +352,8 @@ public class CusumSpark implements Runnable {
         int errorVel = 0;
         int errorArl = 0;
         while (i <= exp) {
-            generaDatosLambda(l0, b0, b1, lon, lon2);
-            res = estimaPuntoCambio(l0, b0, lon, b1, lon2, nven, threshold, data);
+            generaDatosLambda(l0, betas, lon);
+            res = estimaPuntoCambio(l0, betas[0], lon, betas[1], lon, nven, threshold, data);
             if (res.get(0) == -1){
                 errorArl++;
             }else if (res.get(0) == -2){
@@ -362,7 +364,7 @@ public class CusumSpark implements Runnable {
                 i++;
             }
         }
-        muestraResultadosExperimentos(threshold, l0, b0, b1, time, velocidades, errorArl, errorVel);
+        muestraResultadosExperimentos(threshold, l0, betas[0], betas[1], time, velocidades, errorArl, errorVel);
     }
 
     /**
@@ -388,7 +390,7 @@ public class CusumSpark implements Runnable {
 //        }
 //    }
 
-    private void cusumGUI(double l0, double b0, double b1, int lon, int lon2, int nven){
+    private void cusumGUI(double l0, double[] betas, int lon, int nven){
         Tarea tarea;
         double dato;
         int fase;
@@ -408,7 +410,7 @@ public class CusumSpark implements Runnable {
             }
 
             long tiempoEspera = 1000;
-            FuenteDatosPoisson eventSource = new FuenteDatosPoisson(tiempoEspera, l0, b0, b1, lon, lon2, zonaIntercambioEventos);
+            FuenteDatosPoisson eventSource = new FuenteDatosPoisson(tiempoEspera, l0, betas, lon, zonaIntercambioEventos);
             t = new Thread(eventSource);
             t.start();
         }
@@ -583,7 +585,7 @@ public class CusumSpark implements Runnable {
 //
 //                    b1 = arrayVelA[indexb1];
                     //unExperimento(l0, b0, b1, 100, 50, 15, threshold, 1);
-                    cusumGUI(l0, b0, b1, 100, 100, 15);
+                    cusumGUI(l0, betas, 100, 15);
 //                }
 //            }
 //        }
