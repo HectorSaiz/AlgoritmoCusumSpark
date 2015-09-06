@@ -83,7 +83,7 @@
                         <Insets left="20.0" />
                      </GridPane.margin>
                   </Button>
-                  <Label text="Retraso para el calculo inicial en segundos: " GridPane.columnIndex="5">
+                  <Label text="Retraso para el cálculo inicial en segundos: " GridPane.columnIndex="5">
                      <GridPane.margin>
                         <Insets left="10.0" />
                      </GridPane.margin>
@@ -113,6 +113,14 @@
                         <Font size="16.0" />
                      </font>
                   </Label>
+                  <Button mnemonicParsing="false" onAction="#handleSettings" text="Configuracion">
+                     <opaqueInsets>
+                        <Insets left="20.0" />
+                     </opaqueInsets>
+                     <FlowPane.margin>
+                        <Insets left="20.0" />
+                     </FlowPane.margin>
+                  </Button>
                </children>
             </FlowPane>
          </children>

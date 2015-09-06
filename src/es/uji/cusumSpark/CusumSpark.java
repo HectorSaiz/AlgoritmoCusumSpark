@@ -15,8 +15,6 @@ import java.util.List;
 public class CusumSpark implements Runnable {
 
 
-    // TODO preguntar ¿dejamos estos atributos y que las funciones los puedan utilizar libremente o mejor los hacemos locales y que las funciones se los pasen entre sí?
-
     private static double[] arrayVelA = new double[] {-1.0, 0, 0.05 ,0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85, 0.95, 1, 1.5, 2, 2.5, 3 }; // Array de velocidades de las rectas, es decir de las pendientes
     private static double[] arrayVel = new double[] {-1.0, 3, 2, 1.5, 1, 0.95, 0.85, 0.75, 0.65, 0.55, 0.45, 0.35, 0.25, 0.15, 0.05, 0.0}; // Array de velocidades de las rectas, es decir de las pendientes
     private static double[] arrayThreshold = new double[] {-1.0, 7, 9.8, 14.4};  // Array con los posibles valores umbral para los experimentos
@@ -30,6 +28,17 @@ public class CusumSpark implements Runnable {
     private Controller controller;
     private int inicio, medio, fin, puntoCambio = 1;
     private double[] betas = new double[] {0, 1, 3, 5, 7};
+    private int lon = 100;
+
+
+    public void setLon(int lon) {
+        this.lon = lon;
+    }
+
+    public void setBetas(double[] betas) {
+        this.betas = betas;
+    }
+
 
 //    private static int lon = 100;  // Cantidad de números antes de introducir en cambio
 //    private static int lon2 = 50;  // Cantidad de números después de introducir el cambio
@@ -585,7 +594,7 @@ public class CusumSpark implements Runnable {
 //
 //                    b1 = arrayVelA[indexb1];
                     //unExperimento(l0, b0, b1, 100, 50, 15, threshold, 1);
-                    cusumGUI(l0, betas, 100, 15);
+                    cusumGUI(l0, betas, lon, 15);
 //                }
 //            }
 //        }
